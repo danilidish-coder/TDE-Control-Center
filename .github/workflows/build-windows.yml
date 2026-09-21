@@ -1,0 +1,80 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Extract source
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip')) {
+            throw 'Missing TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+          }
+          Expand-Archive -Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip' -DestinationPath 'src' -Force
+          if (!(Test-Path 'src\TDE_Control_Center_FINAL_BUILD\TDE_Control_Center.spec')) {
+            throw 'Expected project folder/spec not found after extraction'
+          }
+
+      - name: Install build dependencies
+        shell: pwsh
+        working-directory: src\TDE_Control_Center_FINAL_BUILD
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-build.txt
+
+      - name: Build EXE
+        shell: pwsh
+        working-directory: src\TDE_Control_Center_FINAL_BUILD
+        run: |
+          python -m PyInstaller --clean --noconfirm TDE_Control_Center.spec
+          if (!(Test-Path 'dist\TDE_Control_Center.exe')) {
+            throw 'EXE was not created'
+          }
+
+      - name: Smoke test startup
+        shell: pwsh
+        working-directory: src\TDE_Control_Center_FINAL_BUILD
+        run: |
+          $p = Start-Process -FilePath '.\dist\TDE_Control_Center.exe' -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) {
+            if ($p.ExitCode -ne 0) {
+              throw "EXE exited during smoke test with code $($p.ExitCode)"
+            }
+          } else {
+            Stop-Process -Id $p.Id -Force
+          }
+
+      - name: SHA256
+        shell: pwsh
+        working-directory: src\TDE_Control_Center_FINAL_BUILD
+        run: |
+          Get-FileHash '.\dist\TDE_Control_Center.exe' -Algorithm SHA256 | Format-List
+          Get-FileHash '.\dist\TDE_Control_Center.exe' -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File '.\dist\TDE_Control_Center.exe.sha256.txt' -Encoding ascii
+
+      - name: Upload final EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: TDE-Control-Center-Windows
+          path: |
+            src/TDE_Control_Center_FINAL_BUILD/dist/TDE_Control_Center.exe
+            src/TDE_Control_Center_FINAL_BUILD/dist/TDE_Control_Center.exe.sha256.txt
+          if-no-files-found: error
+          retention-days: 14
