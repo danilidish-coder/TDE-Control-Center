@@ -26,26 +26,15 @@ jobs:
           python-version: '3.12'
 
       - name: Locate project source
-        id: locate
         shell: pwsh
         run: |
-          $spec = Get-ChildItem -Path 'source' -Filter 'TDE_Control_Center.spec' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-
-          # Transitional fallback only: once the repository migration is complete,
-          # the ZIP is removed and builds use the unpacked source exclusively.
-          if (-not $spec -and (Test-Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip')) {
-            Expand-Archive -Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip' -DestinationPath '_legacy_source' -Force
-            $spec = Get-ChildItem -Path '_legacy_source' -Filter 'TDE_Control_Center.spec' -Recurse | Select-Object -First 1
-          }
-
+          $spec = Get-ChildItem -Path 'source' -Filter 'TDE_Control_Center.spec' -Recurse | Select-Object -First 1
           if (-not $spec) {
-            throw 'TDE_Control_Center.spec not found in unpacked source.'
+            throw 'TDE_Control_Center.spec not found in source/.'
           }
-
           $projectDir = Split-Path $spec.FullName -Parent
           "PROJECT_DIR=$projectDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "SPEC_FILE=$($spec.Name)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          Write-Host "Project directory: $projectDir"
 
       - name: Install build dependencies
         shell: pwsh
@@ -88,9 +77,10 @@ jobs:
         shell: pwsh
         run: |
           $exe = Join-Path $env:PROJECT_DIR 'dist\TDE_Control_Center.exe'
-          $hashFile = "$exe.sha256.txt"
           Get-FileHash $exe -Algorithm SHA256 | Format-List
-          Get-FileHash $exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File $hashFile -Encoding ascii
+          Get-FileHash $exe -Algorithm SHA256 |
+            Select-Object -ExpandProperty Hash |
+            Out-File "$exe.sha256.txt" -Encoding ascii
 
       - name: Stage artifact
         shell: pwsh
