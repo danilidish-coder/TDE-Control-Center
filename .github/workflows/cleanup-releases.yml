@@ -1,0 +1,36 @@
+name: Clean Release Downloads
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/cleanup-releases.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep only the useful EXE in each release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -e
+
+          # Current release: keep only the Windows EXE.
+          for asset in             "TDE_CONTROL_CENTER_EDITION_03_v1.0_FINAL.zip"             "TDE_CONTROL_CENTER_v1.0.exe.sha256.txt"             "TDE_CONTROL_CENTER_v1.0_SOURCE.zip"; do
+            gh release delete-asset "v1.0" "$asset" -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+          done
+
+          gh release edit "v1.0" -R "${{ github.repository }}"             --title "Κέντρο Ελέγχου v1.0 — Τρέχουσα έκδοση"             --notes "Τρέχουσα έκδοση Windows. Για χρήση κατέβασε μόνο το TDE_CONTROL_CENTER_v1.0.exe από τα Assets."
+
+          # Previous archived release: keep only its Windows EXE.
+          for asset in             "TDE_Control_Center_EDITION_02_v0.6_SOURCE.zip"             "TDE_CONTROL_CENTER_EDITION_02_v0.6_TEST.exe.sha256.txt"; do
+            gh release delete-asset "edition-02-v0.6-test" "$asset" -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+          done
+
+          gh release edit "edition-02-v0.6-test" -R "${{ github.repository }}"             --title "Κέντρο Ελέγχου v0.6 — Προηγούμενη έκδοση"             --notes "Προηγούμενη αρχειοθετημένη έκδοση Windows. Για χρήση κατέβασε μόνο το TDE_CONTROL_CENTER_EDITION_02_v0.6_TEST.exe από τα Assets."
