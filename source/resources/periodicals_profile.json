@@ -1,0 +1,169 @@
+{
+  "source": "ΚΕΝΤΡΟ ΕΛΕΓΧΟΥ v10.3",
+  "cutoff": "10:00",
+  "packages": [
+    {
+      "id": "PKG003",
+      "name": "1 WEB MAIL",
+      "system": "WEB",
+      "to": "C2.S3@frontex.europa.eu,TERRA.IOA.LCC@frontex.europa.eu",
+      "cc": "lcc.ioannina@astynomia.gr,adflorinas@astynomia.gr",
+      "notes": "DAILY  ACTIVITY  BCP KRYSTALLOPIGIS",
+      "root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\ΑΝΑΦΟΡΕΣ autoFill\\ΠΑΚΕΤΑ ΑΝΑΦΟΡΩΝ",
+      "active": true,
+      "order": 2
+    },
+    {
+      "id": "PKG004",
+      "name": "ERMIS 1",
+      "system": "ERMIS",
+      "to": "\"Δ.Α. ΦΛΩΡΙΝΑΣ\" <adflo@ermis.ydt>",
+      "cc": "",
+      "notes": "BΡΑΔΥΝΕΣ ΑΝΑΦΟΡΕΣ, ΕΠΑΝΑΠΑΤΡΙΣΜΟΣ ΣΥΛΛΗΨΕΙΣ ΚΑΙ ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ",
+      "root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\ΑΝΑΦΟΡΕΣ autoFill\\ΠΑΚΕΤΑ ΑΝΑΦΟΡΩΝ",
+      "active": true,
+      "order": 3
+    },
+    {
+      "id": "PKG005",
+      "name": "ERMIS 2",
+      "system": "ERMIS",
+      "to": "adflo-gaa@ermis.ydt",
+      "cc": "",
+      "notes": "ΑΝΑΦΟΡΑ ΤΑΞΙΔΙΩΤΙΚΗΣ ΚΙΝΗΣΗΣ ΚΑΙ ΣΑΡΙΣΑ",
+      "root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\ΑΝΑΦΟΡΕΣ autoFill\\ΠΑΚΕΤΑ ΑΝΑΦΟΡΩΝ",
+      "active": true,
+      "order": 4
+    },
+    {
+      "id": "PKG006",
+      "name": "ERMIS 3",
+      "system": "ERMIS",
+      "to": "gaddmak@ermis.yd",
+      "cc": "adflo-gaa@ermis.yd",
+      "notes": "ΥΕΔ ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ",
+      "root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\ΑΝΑΦΟΡΕΣ autoFill\\ΠΑΚΕΤΑ ΑΝΑΦΟΡΩΝ",
+      "active": true,
+      "order": 5
+    }
+  ],
+  "files": [
+    {
+      "package_id": "PKG004",
+      "name": "ΗΜΕΡHΣΙΑ ΚΙΝΗΣΗ.xlsx",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\ΗΜΕΡHΣΙΑ ΚΙΝΗΣΗ.xlsx",
+      "active": true,
+      "profile": "ΩΣ ΕΧΕΙ",
+      "name_template": "ΗΜΕΡHΣΙΑ ΚΙΝΗΣΗ {DD-MM-YYYY}.xlsx",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α",
+      "status": "",
+      "folder_layout": "AS_IS"
+    },
+    {
+      "package_id": "PKG006",
+      "name": "ΑΣ+ΔΥΝΑΜΗΣ-ΕΛΕΓΧΩΝ-ΠΑΡΑΒΑΣΕΩΝ 2026-08-21.xls",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΕΛΕΓΧΟΙ ΠΑΡΑΒΑΣΕΙΣ\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\ΑΣ+ΔΥΝΑΜΗΣ-ΕΛΕΓΧΩΝ-ΠΑΡΑΒΑΣΕΩΝ 2026-08-21.xls",
+      "active": true,
+      "profile": "ΤΕΛΕΥΤΑΙΟ ΣΤΟΝ ΙΔΙΟ ΦΑΚΕΛΟ",
+      "name_template": "ΑΣ+ΔΥΝΑΜΗΣ-ΕΛΕΓΧΩΝ-ΠΑΡΑΒΑΣΕΩΝ {YYYY-MM-DD}.xls",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΕΛΕΓΧΟΙ ΠΑΡΑΒΑΣΕΙΣ",
+      "status": "",
+      "folder_layout": "BAT_MONTH"
+    },
+    {
+      "package_id": "PKG004",
+      "name": "ΑΝΑΦΟΡΕΣ 21-08-2026 ΑΞ.ΥΠ..docx",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\21-08-2026\\ΑΝΑΦΟΡΕΣ 21-08-2026 ΑΞ.ΥΠ..docx",
+      "active": true,
+      "profile": "ΗΜΕΡΗΣΙΟΣ ΦΑΚΕΛΟΣ",
+      "name_template": "ΑΝΑΦΟΡΕΣ {DD-MM-YYYY} ΑΞ.ΥΠ..docx",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS",
+      "status": "",
+      "folder_layout": "BAT_DAILY"
+    },
+    {
+      "package_id": "PKG004",
+      "name": "ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α. 21-08-2026 (μέχρι 06.00).xlsm",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\21-08-2026\\ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α. 21-08-2026 (μέχρι 06.00).xlsm",
+      "active": true,
+      "profile": "ΗΜΕΡΗΣΙΟΣ ΦΑΚΕΛΟΣ",
+      "name_template": "ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α. {DD-MM-YYYY} (μέχρι 06.00).xlsm",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS",
+      "status": "",
+      "folder_layout": "BAT_DAILY"
+    },
+    {
+      "package_id": "PKG004",
+      "name": "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 21-08-2026 (μέχρι 06.00).xlsx",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\21-08-2026\\ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 21-08-2026 (μέχρι 06.00).xlsx",
+      "active": true,
+      "profile": "ΗΜΕΡΗΣΙΟΣ ΦΑΚΕΛΟΣ",
+      "name_template": "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ {DD-MM-YYYY} (μέχρι 06.00).xlsx",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\1. SCAN FOLDER REPORTS",
+      "status": "",
+      "folder_layout": "BAT_DAILY"
+    },
+    {
+      "package_id": "PKG004",
+      "name": "ΑΤ_ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ_21_08_2026.xls",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΕΠΑΝΑΠΑΤΡΙΣΜΟΣ ΣΥΛΛΗΨΕΙΣ\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\ΑΤ_ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ_21_08_2026.xls",
+      "active": true,
+      "profile": "ΤΕΛΕΥΤΑΙΟ ΣΤΟΝ ΙΔΙΟ ΦΑΚΕΛΟ",
+      "name_template": "ΑΤ_ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ_{DD_MM_YYYY}.xls",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΕΠΑΝΑΠΑΤΡΙΣΜΟΣ ΣΥΛΛΗΨΕΙΣ",
+      "status": "",
+      "folder_layout": "BAT_MONTH"
+    },
+    {
+      "package_id": "PKG005",
+      "name": "ΤΑΞ_ΥΕΔ_ΚΡΥΣΤΑΛΛΟΠΗΓΗ_ΧΕΡ_2026_08_21.xls",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΑΝΑΦΟΡΑ ΤΑΞΙΔΙΩΤΙΚΗΣ ΚΙΝΗΣΗΣ ΑΡΝΗΣΕΩΝ\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\ΤΑΞ_ΥΕΔ_ΚΡΥΣΤΑΛΛΟΠΗΓΗ_ΧΕΡ_2026_08_21.xls",
+      "active": true,
+      "profile": "ΤΕΛΕΥΤΑΙΟ ΣΤΟΝ ΙΔΙΟ ΦΑΚΕΛΟ",
+      "name_template": "ΤΑΞ_ΥΕΔ_ΚΡΥΣΤΑΛΛΟΠΗΓΗ_ΧΕΡ_{YYYY_MM_DD}.xls",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\ΑΝΑΦΟΡΑ ΤΑΞΙΔΙΩΤΙΚΗΣ ΚΙΝΗΣΗΣ ΑΡΝΗΣΕΩΝ",
+      "status": "",
+      "folder_layout": "BAT_MONTH"
+    },
+    {
+      "package_id": "PKG005",
+      "name": "ΗΜΕΡΗΣΙΟ 2026-08-21.xls",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\SARISA\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\ΗΜΕΡΗΣΙΟ 2026-08-21.xls",
+      "active": true,
+      "profile": "ΤΕΛΕΥΤΑΙΟ ΣΤΟΝ ΙΔΙΟ ΦΑΚΕΛΟ",
+      "name_template": "ΗΜΕΡΗΣΙΟ {YYYY-MM-DD}.xls",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\SARISA",
+      "status": "",
+      "folder_layout": "BAT_MONTH"
+    },
+    {
+      "package_id": "PKG003",
+      "name": "22-08-26+DAILY ACTIVITY+BCP KRYSTALLOPIGI.doc",
+      "source_path": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\DAILY ACTIVITY\\2026\\8. ΑΥΓΟΥΣΤΟΣ 2026\\22-08-26+DAILY ACTIVITY+BCP KRYSTALLOPIGI.doc",
+      "active": true,
+      "profile": "ΤΕΛΕΥΤΑΙΟ ΣΤΟΝ ΙΔΙΟ ΦΑΚΕΛΟ",
+      "name_template": "{DD-MM-YY}+DAILY ACTIVITY+BCP KRYSTALLOPIGI.doc",
+      "prepared_path": "",
+      "prepared_date": "",
+      "archive_root": "\\\\EES8WJQNJ3\\scanfolder\\HMEΡΗΣΙΑ Δ.Α\\2. SHAREDFILES REPORTS\\DAILY ACTIVITY",
+      "status": "",
+      "folder_layout": "BAT_MONTH"
+    }
+  ]
+}

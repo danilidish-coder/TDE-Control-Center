@@ -1,0 +1,4 @@
+PyInstaller
+PySide6==6.9.2
+lxml
+pywin32
