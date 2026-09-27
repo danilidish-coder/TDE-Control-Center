@@ -1,0 +1,80 @@
+name: One-time unpack source migration
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/migrate-source-unpacked.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Expand source ZIP into repository source tree
+        shell: pwsh
+        run: |
+          $zip = 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+          if (!(Test-Path $zip)) {
+            Write-Host 'ZIP already removed; nothing to migrate.'
+            exit 0
+          }
+
+          Remove-Item '_source_migration' -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item 'source' -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path '_source_migration' | Out-Null
+          Expand-Archive -Path $zip -DestinationPath '_source_migration' -Force
+
+          $top = Get-ChildItem '_source_migration' -Force
+          $topDirs = @($top | Where-Object { $_.PSIsContainer })
+          $topFiles = @($top | Where-Object { -not $_.PSIsContainer })
+
+          if ($topDirs.Count -eq 1 -and $topFiles.Count -eq 0) {
+            $sourceRoot = $topDirs[0].FullName
+          } else {
+            $sourceRoot = (Resolve-Path '_source_migration').Path
+          }
+
+          New-Item -ItemType Directory -Force -Path 'source' | Out-Null
+          Copy-Item (Join-Path $sourceRoot '*') 'source' -Recurse -Force
+
+          Get-ChildItem 'source' -Recurse -Directory -Force |
+            Where-Object { $_.Name -in @('__pycache__','.pytest_cache','.mypy_cache','.venv','venv','dist','build') } |
+            Sort-Object FullName -Descending |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+          Get-ChildItem 'source' -Recurse -File -Force |
+            Where-Object { $_.Extension -in @('.pyc','.pyo') } |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+
+          Remove-Item '_source_migration' -Recurse -Force
+
+          $spec = Get-ChildItem 'source' -Filter 'TDE_Control_Center.spec' -Recurse | Select-Object -First 1
+          if (-not $spec) {
+            throw 'Migration aborted: TDE_Control_Center.spec not found after extraction.'
+          }
+
+          Write-Host "Source migrated. Spec: $($spec.FullName)"
+
+      - name: Commit unpacked source and remove ZIP
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip')) {
+            Write-Host 'Nothing to commit.'
+            exit 0
+          }
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add --all source
+          git rm -- 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+          git commit -m "Store Control Center source unpacked"
+          git push
