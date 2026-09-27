@@ -4,8 +4,12 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+      - 'source/**'
+      - '.github/workflows/build-windows.yml'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -21,38 +25,56 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Extract source
+      - name: Locate project source
+        id: locate
         shell: pwsh
         run: |
-          if (!(Test-Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip')) {
-            throw 'Missing TDE_Control_Center_FINAL_BUILD_SOURCE.zip'
+          $spec = Get-ChildItem -Path 'source' -Filter 'TDE_Control_Center.spec' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          # Transitional fallback only: once the repository migration is complete,
+          # the ZIP is removed and builds use the unpacked source exclusively.
+          if (-not $spec -and (Test-Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip')) {
+            Expand-Archive -Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip' -DestinationPath '_legacy_source' -Force
+            $spec = Get-ChildItem -Path '_legacy_source' -Filter 'TDE_Control_Center.spec' -Recurse | Select-Object -First 1
           }
-          Expand-Archive -Path 'TDE_Control_Center_FINAL_BUILD_SOURCE.zip' -DestinationPath 'src' -Force
-          if (!(Test-Path 'src\TDE_Control_Center_FINAL_BUILD\TDE_Control_Center.spec')) {
-            throw 'Expected project folder/spec not found after extraction'
+
+          if (-not $spec) {
+            throw 'TDE_Control_Center.spec not found in unpacked source.'
           }
+
+          $projectDir = Split-Path $spec.FullName -Parent
+          "PROJECT_DIR=$projectDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "SPEC_FILE=$($spec.Name)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Project directory: $projectDir"
 
       - name: Install build dependencies
         shell: pwsh
-        working-directory: src\TDE_Control_Center_FINAL_BUILD
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-build.txt
+          if (Test-Path (Join-Path $env:PROJECT_DIR 'requirements-build.txt')) {
+            python -m pip install -r (Join-Path $env:PROJECT_DIR 'requirements-build.txt')
+          } elseif (Test-Path (Join-Path $env:PROJECT_DIR 'requirements.txt')) {
+            python -m pip install -r (Join-Path $env:PROJECT_DIR 'requirements.txt')
+            python -m pip install pyinstaller
+          } else {
+            throw 'No requirements-build.txt or requirements.txt found.'
+          }
 
       - name: Build EXE
         shell: pwsh
-        working-directory: src\TDE_Control_Center_FINAL_BUILD
         run: |
-          python -m PyInstaller --clean --noconfirm TDE_Control_Center.spec
+          Push-Location $env:PROJECT_DIR
+          python -m PyInstaller --clean --noconfirm $env:SPEC_FILE
           if (!(Test-Path 'dist\TDE_Control_Center.exe')) {
             throw 'EXE was not created'
           }
+          Pop-Location
 
       - name: Smoke test startup
         shell: pwsh
-        working-directory: src\TDE_Control_Center_FINAL_BUILD
         run: |
-          $p = Start-Process -FilePath '.\dist\TDE_Control_Center.exe' -PassThru
+          $exe = Join-Path $env:PROJECT_DIR 'dist\TDE_Control_Center.exe'
+          $p = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 8
           if ($p.HasExited) {
             if ($p.ExitCode -ne 0) {
@@ -64,17 +86,23 @@ jobs:
 
       - name: SHA256
         shell: pwsh
-        working-directory: src\TDE_Control_Center_FINAL_BUILD
         run: |
-          Get-FileHash '.\dist\TDE_Control_Center.exe' -Algorithm SHA256 | Format-List
-          Get-FileHash '.\dist\TDE_Control_Center.exe' -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File '.\dist\TDE_Control_Center.exe.sha256.txt' -Encoding ascii
+          $exe = Join-Path $env:PROJECT_DIR 'dist\TDE_Control_Center.exe'
+          $hashFile = "$exe.sha256.txt"
+          Get-FileHash $exe -Algorithm SHA256 | Format-List
+          Get-FileHash $exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File $hashFile -Encoding ascii
 
-      - name: Upload final EXE
+      - name: Stage artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path 'artifact' | Out-Null
+          Copy-Item (Join-Path $env:PROJECT_DIR 'dist\TDE_Control_Center.exe') 'artifact\TDE_Control_Center.exe'
+          Copy-Item (Join-Path $env:PROJECT_DIR 'dist\TDE_Control_Center.exe.sha256.txt') 'artifact\TDE_Control_Center.exe.sha256.txt'
+
+      - name: Upload Windows build
         uses: actions/upload-artifact@v4
         with:
           name: TDE-Control-Center-Windows
-          path: |
-            src/TDE_Control_Center_FINAL_BUILD/dist/TDE_Control_Center.exe
-            src/TDE_Control_Center_FINAL_BUILD/dist/TDE_Control_Center.exe.sha256.txt
+          path: artifact/**
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
