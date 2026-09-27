@@ -27,3 +27,10 @@ These rules apply to future work on this repository.
 
 ## Working principle
 For future maintenance, start from GitHub rather than reconstructing the project from chat copies or ZIP archives.
+
+
+## Release presentation
+- Each stable GitHub Release should expose only one user-facing Windows EXE asset.
+- Do not attach duplicate transfer ZIPs, source ZIPs, or checksum text files to stable releases unless explicitly requested.
+- GitHub's automatic "Source code (zip)" and "Source code (tar.gz)" entries are expected and may remain.
+- Release titles should clearly distinguish the current version from archived previous versions.
