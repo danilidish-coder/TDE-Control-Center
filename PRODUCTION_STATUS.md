@@ -1,20 +1,27 @@
 # Production status
 
 ## Current production
-- Version: **v1.0.1**
-- Published: **2026-10-01**
-- Release commit: `fd4a5f089eead4889cd0813a9e941ef25f726700`
-- Release EXE: `TDE_CONTROL_CENTER_v1.0.1.exe`
-- EXE SHA-256: `9370673510f6d50fee73cab80ac8ac450337d9af2a91f43d68d55098a8e89f0b`
-- Source snapshot: `TDE_CONTROL_CENTER_v1.0.1_SOURCE.zip`
-- Source snapshot SHA-256: `3368bd7fc23c6cb7d4b0c8190505f78b051b499181db14895ad69f00ae31bda8`
-- Successful build run: `36886187885`
+- Version: **v1.0.12**
+- Release commit: `0da71d9ad5e8aa3b8d5a3f553e8d0abd42dc8d3a`
+- Release EXE: `TDE_CONTROL_CENTER_v1.0.12.exe`
+- EXE SHA-256: `4a2355580479f063f67b867241e8babb9e4314d5875a2dfed6bbb0689483202d`
+- Source snapshot: `TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`
+- Successful Windows build/test run: `37070025655`
 
-## Source-of-truth rule
-For the current deployed application, the v1.0.1 release source snapshot is the authoritative reference.
+## Source of truth
+For all future work, **v1.0.12 is the only production baseline**.
 
-The `main/source/` directory is an older baseline and remains non-production until it is synchronized with this release.
+The authoritative recoverable source is the GitHub Release asset:
+`TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`.
 
-## Safety
-A backup of `main` before the repository cleanup is preserved in:
-`backup-main-2026-10-02-pre-cleanup`
+The old `main/source/` tree is legacy and must not be used as production source.
+
+## Frozen visual assets
+The exact approved visual assets are preserved in `CURRENT_ASSETS/`:
+- user-selected Hellenic Police emblem,
+- Greece watermark used in v1.0.12.
+
+Do not redraw, recolor or replace them unless explicitly requested.
+
+## Repository retention
+Only the current production release is retained in GitHub Releases. Older release downloads, tags, release branches and redundant Actions artifacts are removed after the current release is confirmed.
