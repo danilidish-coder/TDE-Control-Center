@@ -1,4 +1,4 @@
-name: Clean Release Downloads
+name: Keep Only Current Release
 
 on:
   workflow_dispatch:
@@ -9,28 +9,47 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: Keep only the useful EXE in each release
+      - name: Keep only v1.0.12 and remove superseded GitHub clutter
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
+          KEEP_TAG="v1.0.12"
 
-          # Current release: keep only the Windows EXE.
-          for asset in             "TDE_CONTROL_CENTER_EDITION_03_v1.0_FINAL.zip"             "TDE_CONTROL_CENTER_v1.0.exe.sha256.txt"             "TDE_CONTROL_CENTER_v1.0_SOURCE.zip"; do
-            gh release delete-asset "v1.0" "$asset" -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+          echo "Deleting superseded releases and their tags..."
+          gh release list -R "$REPO" --limit 100 --json tagName --jq '.[].tagName' | while read -r tag; do
+            [ -z "$tag" ] && continue
+            if [ "$tag" != "$KEEP_TAG" ]; then
+              gh release delete "$tag" -R "$REPO" --cleanup-tag -y
+            fi
           done
 
-          gh release edit "v1.0" -R "${{ github.repository }}"             --title "Κέντρο Ελέγχου v1.0 — Τρέχουσα έκδοση"             --notes "Τρέχουσα έκδοση Windows. Για χρήση κατέβασε μόνο το TDE_CONTROL_CENTER_v1.0.exe από τα Assets."
+          echo "Removing redundant asset from current release..."
+          gh release delete-asset "$KEEP_TAG" "TDE_CONTROL_CENTER_v1.0.12_FINAL.zip" -R "$REPO" -y >/dev/null 2>&1 || true
 
-          # Previous archived release: keep only its Windows EXE.
-          for asset in             "TDE_Control_Center_EDITION_02_v0.6_SOURCE.zip"             "TDE_CONTROL_CENTER_EDITION_02_v0.6_TEST.exe.sha256.txt"; do
-            gh release delete-asset "edition-02-v0.6-test" "$asset" -R "${{ github.repository }}" -y >/dev/null 2>&1 || true
+          echo "Marking v1.0.12 as the single current production release..."
+          gh release edit "$KEEP_TAG" -R "$REPO"             --title "TDE Control Center v1.0.12 — Τρέχουσα έκδοση"             --notes "Μοναδική τρέχουσα παραγωγική έκδοση. Διατηρούνται το EXE, το SHA-256 και το πλήρες source snapshot. Τα εγκεκριμένα assets σήματος ΕΛ.ΑΣ. και χάρτη Ελλάδας διατηρούνται επίσης στο main/CURRENT_ASSETS."
+
+          echo "Deleting all non-main branches..."
+          gh api --paginate "repos/$REPO/branches?per_page=100" --jq '.[].name' | while read -r branch; do
+            [ -z "$branch" ] && continue
+            if [ "$branch" != "main" ]; then
+              gh api -X DELETE "repos/$REPO/git/refs/heads/$branch" >/dev/null 2>&1 || true
+            fi
           done
 
-          gh release edit "edition-02-v0.6-test" -R "${{ github.repository }}"             --title "Κέντρο Ελέγχου v0.6 — Προηγούμενη έκδοση"             --notes "Προηγούμενη αρχειοθετημένη έκδοση Windows. Για χρήση κατέβασε μόνο το TDE_CONTROL_CENTER_EDITION_02_v0.6_TEST.exe από τα Assets."
+          echo "Deleting redundant Actions artifacts..."
+          gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" --jq '.artifacts[].id' | while read -r artifact_id; do
+            [ -z "$artifact_id" ] && continue
+            gh api -X DELETE "repos/$REPO/actions/artifacts/$artifact_id" >/dev/null 2>&1 || true
+          done
+
+          echo "Cleanup complete."
