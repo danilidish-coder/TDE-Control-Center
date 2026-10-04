@@ -1,25 +1,24 @@
 # GitHub structure
 
-## Current production
-- Version: **v1.0.12**
-- Downloadable release: GitHub Release `v1.0.12`
-- Authoritative EXE: `TDE_CONTROL_CENTER_v1.0.12.exe`
-- Authoritative source: `TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`
+## Current baseline
+- Functional version: **v1.0.13**
+- Validated binary package: stored in Google Drive under `TDE-Control-Center/Releases/v1.0.13/`
+- Verified v1.0.13 source: **not currently present in GitHub**
 
 ## Main branch
-`main` is the navigation and maintenance branch.
+`main` contains only repository status/policy files and reusable shared assets.
+The superseded v1.0.12 source tree has been removed.
 
-The existing `source/` directory is legacy. The v1.0.12 release source snapshot is the production source of truth.
-
-## Current visual assets
-`CURRENT_ASSETS/` contains the exact approved police emblem and Greece watermark from v1.0.12.
+## Shared assets
+`SHARED_ASSETS/` contains standalone reusable visual files:
+- approved Hellenic Police emblem,
+- approved Greece map/watermark.
 
 ## Retention rule
 After a new version is verified and explicitly accepted:
-1. it becomes the single production baseline,
-2. keep its EXE, source snapshot and SHA-256,
-3. keep its approved frozen visual assets,
-4. remove superseded releases, tags and temporary release branches,
-5. remove redundant GitHub Actions artifacts.
-
-This replaces the older policy of keeping every release visible.
+1. it becomes the single active baseline,
+2. older Releases and their tags are deleted,
+3. temporary/test/feature branches are deleted,
+4. redundant Actions artifacts are deleted,
+5. superseded source is removed from the active tree,
+6. reusable shared assets are preserved separately.
