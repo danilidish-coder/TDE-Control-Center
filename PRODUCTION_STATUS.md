@@ -1,27 +1,23 @@
 # Production status
 
-## Current production
-- Version: **v1.0.12**
-- Release commit: `0da71d9ad5e8aa3b8d5a3f553e8d0abd42dc8d3a`
-- Release EXE: `TDE_CONTROL_CENTER_v1.0.12.exe`
-- EXE SHA-256: `4a2355580479f063f67b867241e8babb9e4314d5875a2dfed6bbb0689483202d`
-- Source snapshot: `TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`
-- Successful Windows build/test run: `37070025655`
+## Current validated production
+- Version: **v1.0.13**
+- Validated package: `TDE_CONTROL_CENTER_v1.0.13_VALIDATED_EXE.zip`
+- Location: Google Drive / `TDE-Control-Center/Releases/v1.0.13/`
+- Package SHA-256: `fc9c6590c2025c02468541e28553ebe1f2f4851e2a0e8cc21c0e80f14de66f54`
+- Contained EXE: `TDE_CONTROL_CENTER_v1.0.exe`
+- EXE SHA-256: `df79b204e244798d72c35cf582e993773048a926dea7b06f9313e61ad3545bf4`
 
-## Source of truth
-For all future work, **v1.0.12 is the only production baseline**.
+## Source status
+No verified v1.0.13 source snapshot is currently available in GitHub.
+The old v1.0.12 source was removed from the active repository to prevent accidental use.
 
-The authoritative recoverable source is the GitHub Release asset:
-`TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`.
+Until the real v1.0.13 source is recovered, the validated EXE is the functional reference and no older source may be treated as current.
 
-The old `main/source/` tree is legacy and must not be used as production source.
-
-## Frozen visual assets
-The exact approved visual assets are preserved in `CURRENT_ASSETS/`:
-- user-selected Hellenic Police emblem,
-- Greece watermark used in v1.0.12.
-
-Do not redraw, recolor or replace them unless explicitly requested.
+## Shared assets
+Reusable approved visual files are stored separately in `SHARED_ASSETS/`.
+They are independent of the application and version.
 
 ## Repository retention
-Only the current production release is retained in GitHub Releases. Older release downloads, tags, release branches and redundant Actions artifacts are removed after the current release is confirmed.
+Only the current functional baseline should remain operationally visible.
+Superseded releases, tags, branches and redundant Actions artifacts are removed after acceptance of the new functional version.
