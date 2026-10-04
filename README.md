@@ -2,35 +2,28 @@
 
 Private repository for the TDE Control Center Windows application.
 
-## Current production version
-- **Production release:** `v1.0.12`
-- **Release EXE:** `TDE_CONTROL_CENTER_v1.0.12.exe`
-- **Release source snapshot:** `TDE_CONTROL_CENTER_v1.0.12_SOURCE.zip`
+## Current validated version
+- **Validated functional version:** `v1.0.13`
+- **Validated package:** `TDE_CONTROL_CENTER_v1.0.13_VALIDATED_EXE.zip`
+- The validated package is stored in Google Drive under `TDE-Control-Center/Releases/v1.0.13/`.
+- Package SHA-256: `fc9c6590c2025c02468541e28553ebe1f2f4851e2a0e8cc21c0e80f14de66f54`
+- Contained EXE SHA-256: `df79b204e244798d72c35cf582e993773048a926dea7b06f9313e61ad3545bf4`
 
-The v1.0.12 release is the verified baseline for all future changes. It passed the full automated suite, UI stress/regression checks, Windows EXE startup smoke test and relocation smoke test.
+## Important source status
+The recoverable source for v1.0.13 is **not currently present in this repository**.
+The superseded v1.0.12 source has been removed so it cannot be mistaken for the current application.
+Do not build, patch or label old source as v1.0.13.
 
-## Frozen visual assets
-`CURRENT_ASSETS/` preserves the exact approved:
+## Shared visual assets
+`SHARED_ASSETS/` contains the approved reusable:
 - Hellenic Police emblem,
-- Greece watermark.
+- Greece map/watermark.
 
-These assets are part of the v1.0.12 visual identity and are not to be altered unless explicitly requested.
+These files are standalone assets and are not owned by a specific application version.
 
-## Important
-The existing `main/source/` tree is an older unpacked baseline and **is not the current production source**.
-
-For any future maintenance or build, start from the v1.0.12 release source snapshot.
-
-## Repository policy
-To keep the repository simple and light:
-- keep only the current production release in GitHub Releases,
-- remove superseded release tags/branches and redundant build artifacts after verification,
-- preserve the current EXE, source snapshot, SHA-256 and frozen visual assets.
-
-## Maintenance rule
-Before changing production:
-1. map the affected subsystem,
-2. use a test branch/copy,
-3. run the checks,
-4. make one visible production change at a time,
-5. promote only after verification.
+## Retention rule
+When a version is explicitly accepted as functional:
+1. it becomes the only active baseline,
+2. superseded release downloads, tags, temporary branches and redundant artifacts are removed,
+3. superseded source is not kept in the active tree,
+4. reusable shared assets remain separately available.
