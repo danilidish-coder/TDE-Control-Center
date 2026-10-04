@@ -1,0 +1,60 @@
+name: Package v1.0.13 full backup
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/package-v1013-full.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: python -m pip install PyInstaller PySide6==6.9.2 lxml pywin32 openpyxl python-docx
+
+      - name: Build EXE from validated source
+        shell: pwsh
+        working-directory: source
+        run: |
+          python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+
+      - name: Assemble full backup package
+        shell: pwsh
+        run: |
+          Remove-Item PACKAGE -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path PACKAGE | Out-Null
+          Copy-Item 'source' 'PACKAGE\source' -Recurse -Force
+          Remove-Item 'PACKAGE\source\build' -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item 'PACKAGE\source\dist' -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem 'PACKAGE\source' -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem 'PACKAGE\source' -Recurse -File -Include '*.pyc','*.pyo' | Remove-Item -Force -ErrorAction SilentlyContinue
+          Copy-Item 'source\dist\TDE_CONTROL_CENTER_v1.0.exe' 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe'
+          $hash=(Get-FileHash 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe' -Algorithm SHA256).Hash
+          "$hash  TDE_CONTROL_CENTER_v1.0.13.exe" | Set-Content -Encoding ascii 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.sha256.txt'
+
+      - name: Smoke test packaged EXE
+        shell: pwsh
+        run: |
+          $p=Start-Process -FilePath '.\PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe' -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TDE_CONTROL_CENTER_v1.0.13_FULL
+          path: PACKAGE/
+          if-no-files-found: error
+          retention-days: 7
