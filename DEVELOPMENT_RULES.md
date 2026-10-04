@@ -1,36 +1,28 @@
 # Development Rules
 
-These rules apply to future work on this repository.
-
-## Source of truth
-- The GitHub `main` branch is the authoritative source for the current project state.
-- Source code and project files must be stored unpacked and directly browsable in the repository.
-- Do not store the project source as a ZIP archive in the repository.
-- Create a ZIP only when the user explicitly asks for a transfer/download package.
+## Functional baseline
+- An explicitly accepted functional version becomes the single active baseline.
+- Do not keep superseded application versions in the active repository tree or Releases.
+- Do not relabel older source as the current version.
+- If the verified current source is unavailable, state that clearly and do not build from an older source.
 
 ## Change workflow
-- Read the current repository state before making code changes.
-- For substantial or experimental work, use a dedicated branch and keep `main` stable.
-- Preserve previous versions through Git history, tags, and releases rather than duplicate source ZIPs.
-- Avoid destructive replacement of a known working version without a recoverable Git reference.
+- Read and verify the current baseline before any code change.
+- Experimental work may use a temporary feature/test branch.
+- Once a new version is explicitly accepted as functional, clean obsolete releases, tags, temporary branches and redundant build artifacts.
+- Keep only the source and deliverables that actually belong to the accepted version.
 
-## Validation
-- Run the available automated tests before treating a change as ready.
-- Windows standalone builds are produced by GitHub Actions.
-- A successful build must at minimum compile/package successfully and pass the repository's smoke checks.
-- Test artifacts may be temporary; stable versions should be identifiable by version/tag.
+## Shared assets
+- Reusable visual assets must remain separate from application source in `SHARED_ASSETS/`.
+- The shared police emblem and Greece map/watermark must not be redrawn, recolored or replaced unless explicitly requested.
+- Shared assets may be copied/referenced for future projects only when explicitly required.
 
 ## Deliverables
-- GitHub keeps the source, history, tests, workflows, and version references.
-- EXE files may be provided as build artifacts or stable release assets.
-- ZIP packages are generated only on explicit request and are not the normal working format.
+- Stable Releases should expose only the current user-facing Windows EXE unless another artifact is explicitly requested.
+- ZIP transfer packages are created only when explicitly requested.
+- Test EXEs belong to temporary Actions artifacts, not to the permanent release folder.
 
-## Working principle
-For future maintenance, start from GitHub rather than reconstructing the project from chat copies or ZIP archives.
-
-
-## Release presentation
-- Each stable GitHub Release should expose only one user-facing Windows EXE asset.
-- Do not attach duplicate transfer ZIPs, source ZIPs, or checksum text files to stable releases unless explicitly requested.
-- GitHub's automatic "Source code (zip)" and "Source code (tar.gz)" entries are expected and may remain.
-- Release titles should clearly distinguish the current version from archived previous versions.
+## Current Control Center status
+- Validated functional version: **v1.0.13**
+- Verified v1.0.13 source is not currently available in GitHub.
+- Do not use the former v1.0.12 source as a substitute.
