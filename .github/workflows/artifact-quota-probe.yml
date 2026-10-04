@@ -1,0 +1,21 @@
+name: Artifact quota probe
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/artifact-quota-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: printf x > probe.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quota-probe
+          path: probe.txt
+          retention-days: 1
