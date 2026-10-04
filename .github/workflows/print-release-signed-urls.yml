@@ -1,0 +1,29 @@
+name: Print release signed URLs
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/print-release-signed-urls.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  urls:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print signed URLs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for NAME in TDE_CONTROL_CENTER_v1.0.13.sha256.txt TDE_CONTROL_CENTER_v1.0.13_FULL.zip; do
+            ID="$(gh api "repos/$REPO/releases/tags/v1.0.13" --jq ".assets[] | select(.name==\"$NAME\") | .id")"
+            test -n "$ID"
+            curl -sS -D headers.txt -o /dev/null               -H "Authorization: Bearer $GH_TOKEN"               -H "Accept: application/octet-stream"               "https://api.github.com/repos/$REPO/releases/assets/$ID"
+            LOC="$(awk 'BEGIN{IGNORECASE=1} /^location:/{sub(/^[^:]+:[[:space:]]*/, ""); sub(/\r$/, ""); print}' headers.txt | tail -1)"
+            echo "${NAME}_SIGNED_URL=$LOC"
+          done
