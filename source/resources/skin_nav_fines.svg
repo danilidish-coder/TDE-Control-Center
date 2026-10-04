@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs>
+  <linearGradient id="e" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#eefaff"/>
+    <stop offset=".28" stop-color="#8edbff"/>
+    <stop offset=".60" stop-color="#2b9fe9"/>
+    <stop offset="1" stop-color="#0b4d83"/>
+  </linearGradient>
+  <filter id="sh" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="4" stdDeviation="2.4" flood-color="#001b2d" flood-opacity=".9"/>
+  </filter>
+</defs>
+<g filter="url(#sh)" font-family="Segoe UI,Arial,sans-serif" font-weight="900" text-anchor="middle">
+  <text x="35" y="52" font-size="54" fill="#06385e" stroke="#06385e" stroke-width="1.4">€</text>
+  <text x="33.5" y="50.5" font-size="54" fill="#17699e" stroke="#082e4c" stroke-width="1.1">€</text>
+  <text x="32" y="49" font-size="54" fill="url(#e)" stroke="#d8f4ff" stroke-width=".9">€</text>
+</g>
+</svg>
