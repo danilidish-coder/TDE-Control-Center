@@ -1,0 +1,66 @@
+name: Publish validated v1.0.13 release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/publish-v1013-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: python -m pip install PyInstaller PySide6==6.9.2 lxml pywin32 openpyxl python-docx
+
+      - name: Build validated EXE
+        shell: pwsh
+        working-directory: source
+        run: |
+          python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+          Copy-Item 'dist\TDE_CONTROL_CENTER_v1.0.exe' '..\TDE_CONTROL_CENTER_v1.0.13.exe'
+
+      - name: Smoke test EXE
+        shell: pwsh
+        run: |
+          $p=Start-Process -FilePath '.\TDE_CONTROL_CENTER_v1.0.13.exe' -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          if (!(Test-Path '.\.tde_runtime\tde_control_center.sqlite3')) { throw 'EXE did not initialize database' }
+
+      - name: Record SHA-256
+        shell: pwsh
+        run: |
+          $hash=(Get-FileHash '.\TDE_CONTROL_CENTER_v1.0.13.exe' -Algorithm SHA256).Hash
+          "$hash  TDE_CONTROL_CENTER_v1.0.13.exe" | Set-Content -Encoding ascii '.\TDE_CONTROL_CENTER_v1.0.13.sha256.txt'
+          Write-Host "EXE_SHA256=$hash"
+
+      - name: Publish current GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="v1.0.13"
+          TITLE="TDE Control Center v1.0.13 — Τρέχουσα έκδοση"
+          NOTES="Validated current release. Source is stored directly under source/ on main. The release EXE was rebuilt from that validated source and passed the startup smoke test."
+
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "TDE_CONTROL_CENTER_v1.0.13.exe" "TDE_CONTROL_CENTER_v1.0.13.sha256.txt" -R "$REPO" --clobber
+            gh release edit "$TAG" -R "$REPO" --title "$TITLE" --notes "$NOTES" --latest
+          else
+            gh release create "$TAG" "TDE_CONTROL_CENTER_v1.0.13.exe" "TDE_CONTROL_CENTER_v1.0.13.sha256.txt" -R "$REPO" --title "$TITLE" --notes "$NOTES" --latest
+          fi
