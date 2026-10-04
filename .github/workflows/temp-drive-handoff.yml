@@ -13,15 +13,17 @@ jobs:
   handoff:
     runs-on: ubuntu-latest
     steps:
-      - name: Download release ZIP
+      - name: Print signed release ZIP URL
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release download v1.0.13 -p 'TDE_CONTROL_CENTER_v1.0.13_FULL.zip' -R "${{ github.repository }}"
-
-      - name: Upload temporary artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TDE_CONTROL_CENTER_v1.0.13_FULL
-          path: TDE_CONTROL_CENTER_v1.0.13_FULL.zip
-          retention-days: 1
-          compression-level: 0
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ASSET_ID="$(gh api "repos/$REPO/releases/tags/v1.0.13" --jq '.assets[] | select(.name=="TDE_CONTROL_CENTER_v1.0.13_FULL.zip") | .id')"
+          test -n "$ASSET_ID"
+          API_URL="https://api.github.com/repos/$REPO/releases/assets/$ASSET_ID"
+          curl -sS -D headers.txt -o /dev/null -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "$API_URL"
+          LOC="$(awk 'BEGIN{IGNORECASE=1} /^location:/{sub(/^[^:]+:[[:space:]]*/, ""); sub(/\r$/, ""); print}' headers.txt | tail -1)"
+          test -n "$LOC"
+          echo "SIGNED_URL=$LOC"
