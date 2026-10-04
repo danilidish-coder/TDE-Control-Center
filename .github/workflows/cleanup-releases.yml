@@ -1,4 +1,4 @@
-name: Keep Only Current Release
+name: Clean Superseded Repository Data
 
 on:
   workflow_dispatch:
@@ -15,30 +15,21 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: Keep only v1.0.12 and remove superseded GitHub clutter
+      - name: Remove superseded releases, tags, branches and artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          KEEP_TAG="v1.0.12"
 
-          echo "Deleting superseded releases and their tags..."
+          echo "Deleting all obsolete GitHub Releases and their release tags."
           gh release list -R "$REPO" --limit 100 --json tagName --jq '.[].tagName' | while read -r tag; do
             [ -z "$tag" ] && continue
-            if [ "$tag" != "$KEEP_TAG" ]; then
-              gh release delete "$tag" -R "$REPO" --cleanup-tag -y
-            fi
+            gh release delete "$tag" -R "$REPO" --cleanup-tag -y
           done
 
-          echo "Removing redundant asset from current release..."
-          gh release delete-asset "$KEEP_TAG" "TDE_CONTROL_CENTER_v1.0.12_FINAL.zip" -R "$REPO" -y >/dev/null 2>&1 || true
-
-          echo "Marking v1.0.12 as the single current production release..."
-          gh release edit "$KEEP_TAG" -R "$REPO"             --title "TDE Control Center v1.0.12 — Τρέχουσα έκδοση"             --notes "Μοναδική τρέχουσα παραγωγική έκδοση. Διατηρούνται το EXE, το SHA-256 και το πλήρες source snapshot. Τα εγκεκριμένα assets σήματος ΕΛ.ΑΣ. και χάρτη Ελλάδας διατηρούνται επίσης στο main/CURRENT_ASSETS."
-
-          echo "Deleting all non-main branches..."
+          echo "Deleting non-main branches."
           gh api --paginate "repos/$REPO/branches?per_page=100" --jq '.[].name' | while read -r branch; do
             [ -z "$branch" ] && continue
             if [ "$branch" != "main" ]; then
@@ -46,10 +37,10 @@ jobs:
             fi
           done
 
-          echo "Deleting redundant Actions artifacts..."
+          echo "Deleting redundant Actions artifacts."
           gh api --paginate "repos/$REPO/actions/artifacts?per_page=100" --jq '.artifacts[].id' | while read -r artifact_id; do
             [ -z "$artifact_id" ] && continue
             gh api -X DELETE "repos/$REPO/actions/artifacts/$artifact_id" >/dev/null 2>&1 || true
           done
 
-          echo "Cleanup complete."
+          echo "Cleanup complete. Validated v1.0.13 remains in Drive; no older GitHub release is retained."
