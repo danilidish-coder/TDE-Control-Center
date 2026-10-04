@@ -16,9 +16,10 @@ jobs:
         run: |
           set -euo pipefail
           NAME="TDE_CONTROL_CENTER_v1.0.13_FULL.zip"
-          BURL="$(gh api "repos/$REPO/releases/tags/v1.0.13" --jq ".assets[] | select(.name==\"$NAME\") | .browser_download_url")"
-          test -n "$BURL"
-          curl -sS -D headers.txt -o /dev/null -H "Authorization: Bearer $GH_TOKEN" "$BURL"
+          ID="$(gh api "repos/$REPO/releases/tags/v1.0.13" --jq ".assets[] | select(.name==\"$NAME\") | .id")"
+          test -n "$ID"
+          API_URL="https://api.github.com/repos/$REPO/releases/assets/$ID"
+          curl -sS -D headers.txt -o /dev/null -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" "$API_URL"
           LOC="$(awk 'BEGIN{IGNORECASE=1} /^location:/{sub(/^[^:]+:[[:space:]]*/, ""); sub(/\r$/, ""); print}' headers.txt | tail -1)"
           test -n "$LOC"
           echo "SIGNED_URL=$LOC"
