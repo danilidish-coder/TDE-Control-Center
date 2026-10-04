@@ -7,7 +7,7 @@ on:
       - '.github/workflows/package-v1013-full.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package:
@@ -34,6 +34,7 @@ jobs:
         shell: pwsh
         run: |
           Remove-Item PACKAGE -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item TDE_CONTROL_CENTER_v1.0.13_FULL.zip -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Path PACKAGE | Out-Null
           Copy-Item 'source' 'PACKAGE\source' -Recurse -Force
           Remove-Item 'PACKAGE\source\build' -Recurse -Force -ErrorAction SilentlyContinue
@@ -43,6 +44,7 @@ jobs:
           Copy-Item 'source\dist\TDE_CONTROL_CENTER_v1.0.exe' 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe'
           $hash=(Get-FileHash 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe' -Algorithm SHA256).Hash
           "$hash  TDE_CONTROL_CENTER_v1.0.13.exe" | Set-Content -Encoding ascii 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.sha256.txt'
+          Compress-Archive -Path 'PACKAGE\*' -DestinationPath 'TDE_CONTROL_CENTER_v1.0.13_FULL.zip' -CompressionLevel Optimal
 
       - name: Smoke test packaged EXE
         shell: pwsh
@@ -52,9 +54,24 @@ jobs:
           if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
           Stop-Process -Id $p.Id -Force
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: TDE_CONTROL_CENTER_v1.0.13_FULL
-          path: PACKAGE/
-          if-no-files-found: error
-          retention-days: 7
+      - name: Upload full backup to current Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload v1.0.13 TDE_CONTROL_CENTER_v1.0.13_FULL.zip --clobber --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset upload failed' }
+
+      - name: Print temporary signed download URL
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assetId = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/v1.0.13" --jq '.assets[] | select(.name=="TDE_CONTROL_CENTER_v1.0.13_FULL.zip") | .id'
+          if (-not $assetId) { throw 'Release asset id not found' }
+          $apiUrl="https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/assets/$assetId"
+          curl.exe -sS -D redirect_headers.txt -o NUL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" $apiUrl
+          $location=(Get-Content redirect_headers.txt | Where-Object { $_ -match '^location:' } | Select-Object -Last 1)
+          if (-not $location) { throw 'Signed redirect URL not returned' }
+          $signed=$location.Substring(9).Trim()
+          Write-Host "SIGNED_URL=$signed"
