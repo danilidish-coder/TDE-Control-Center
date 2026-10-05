@@ -138,15 +138,24 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if d <= allowed_date:
                 candidates.append((d, path))
 
+        # First trust the exact paths already recorded for this periodical.
+        # If one of them is already today's operational file, no directory scan
+        # can produce a newer valid candidate, so return immediately.
+        if clean(f.prepared_path):
+            add(Path(f.prepared_path))
+        if clean(f.source_path):
+            add(Path(f.source_path))
+        if any(d == allowed_date for d, _path in candidates):
+            return candidates
+
         # IMPORTANT: never rglob() an archive root on the live shared Scan Folder.
         # Some definitions (notably ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ in ERMIS 1) use the broad
-        # HMEΡΗΣΙΑ Δ.Α root.  Recursive walking then traverses every unrelated
+        # HMEΡΗΣΙΑ Δ.Α root. Recursive walking then traverses every unrelated
         # report tree over the network and can make the UI look frozen.
         #
         # Managed periodicals are stored exactly as:
         #   archive_root / YYYY / "<month>. ΜΗΝΑΣ YYYY" / file
-        # so inspect only that two-level structure.  Legacy source/prepared paths
-        # are added explicitly below and therefore remain fully supported.
+        # so inspect only that two-level structure.
         if clean(f.archive_root):
             root = Path(f.archive_root)
             try:
@@ -175,10 +184,6 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             except OSError:
                 pass
 
-        if clean(f.prepared_path):
-            add(Path(f.prepared_path))
-        if clean(f.source_path):
-            add(Path(f.source_path))
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
