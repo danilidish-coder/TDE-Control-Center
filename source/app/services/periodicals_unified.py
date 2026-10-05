@@ -121,6 +121,10 @@ SERIES_FOLDERS=(
 )
 
 def series_folder_for_filename(filename:str)->str:
+    # Η ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ ξεκινά ιστορικά με μικτή ελληνική/λατινική γραφή
+    # ("ΗΜΕΡHΣΙΑ"), γι' αυτό την αναγνωρίζουμε από το σταθερό τελικό "ΚΙΝΗΣΗ".
+    if Path(filename).stem.upper().endswith("ΚΙΝΗΣΗ"):
+        return "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ"
     folded=filename.casefold()
     for folder,prefix,required in SERIES_FOLDERS:
         if folded.startswith(prefix.casefold()) and (not required or required.casefold() in folded):
