@@ -1,0 +1,89 @@
+name: Build and publish current TDE Control Center
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'source/**'
+      - 'VERSION.txt'
+      - '.github/workflows/publish-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-test-publish:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip PyInstaller PySide6==6.9.2 lxml pywin32 openpyxl python-docx pytest
+
+      - name: Run regression tests
+        working-directory: source
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python -m pytest -q tests
+          if ($LASTEXITCODE -ne 0) { throw 'Regression tests failed' }
+
+      - name: Build Windows EXE
+        working-directory: source
+        shell: pwsh
+        run: |
+          python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
+          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
+          if (!(Test-Path 'dist\TDE_CONTROL_CENTER_v1.0.exe')) { throw 'EXE missing' }
+
+      - name: Smoke test EXE
+        shell: pwsh
+        run: |
+          $p=Start-Process -FilePath '.\source\dist\TDE_CONTROL_CENTER_v1.0.exe' -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          if (!(Test-Path '.\.tde_runtime\tde_control_center.sqlite3')) { throw 'EXE did not initialize database' }
+
+      - name: Prepare release files
+        id: version
+        shell: pwsh
+        run: |
+          $tag=(Get-Content '.\VERSION.txt' -Raw).Trim()
+          if (-not $tag) { throw 'VERSION.txt is empty' }
+          $plain=$tag.TrimStart('v')
+          $exeName="TDE_CONTROL_CENTER_v$plain.exe"
+          Copy-Item '.\source\dist\TDE_CONTROL_CENTER_v1.0.exe' ".\$exeName" -Force
+          $hash=(Get-FileHash ".\$exeName" -Algorithm SHA256).Hash
+          "$hash  $exeName" | Set-Content -Encoding ascii ".\TDE_CONTROL_CENTER_v$plain.sha256.txt"
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "plain=$plain" >> $env:GITHUB_OUTPUT
+          "exe=$exeName" >> $env:GITHUB_OUTPUT
+
+      - name: Publish candidate release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PLAIN: ${{ steps.version.outputs.plain }}
+          EXE: ${{ steps.version.outputs.exe }}
+        run: |
+          set -euo pipefail
+          HASH="TDE_CONTROL_CENTER_v$PLAIN.sha256.txt"
+          TITLE="TDE Control Center $TAG — Υποψήφια έκδοση"
+          NOTES="Candidate build with Periodicals workflow guidance and Fines report duty-officer visibility fix. Automated regression tests and Windows startup smoke test passed. Keep v1.0.13 as rollback baseline until this version is confirmed in service."
+
+          if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$EXE" "$HASH" -R "$REPO" --clobber
+            gh release edit "$TAG" -R "$REPO" --title "$TITLE" --notes "$NOTES" --latest
+          else
+            gh release create "$TAG" "$EXE" "$HASH" -R "$REPO" --title "$TITLE" --notes "$NOTES" --latest
+          fi
