@@ -130,7 +130,7 @@ class PeriodicalsPage(QWidget):
         self.info = QLabel(); self.info.setWordWrap(True); card.layout_box.addWidget(self.info)
 
         row = QHBoxLayout()
-        prep = QPushButton("1. ΔΗΜΙΟΥΡΓΙΑ / ΕΝΗΜΕΡΩΣΗ ΠΡΩΤΟΤΥΠΩΝ")
+        prep = QPushButton("1. ΔΗΜΙΟΥΡΓΙΑ ΠΡΩΤΟΤΥΠΩΝ  ⓘ")
         prep.setObjectName("Primary")
         prep.setToolTip(
             "Δημιουργεί τα νέα περιοδικά αρχεία και τους φακέλους στο παρασκήνιο. "
@@ -138,14 +138,14 @@ class PeriodicalsPage(QWidget):
         )
         prep.clicked.connect(self.prepare)
 
-        latest = QPushButton("2. ΑΝΟΙΓΜΑ & ΕΠΕΞΕΡΓΑΣΙΑ")
+        latest = QPushButton("2. ΑΝΟΙΓΜΑ & ΕΠΕΞΕΡΓΑΣΙΑ  ⓘ")
         latest.setToolTip(
             "Ανοίγει τα πιο πρόσφατα πρωτότυπα αρχεία. "
             "Εδώ γίνεται η συμπλήρωση και κάθε μεταγενέστερη διόρθωση."
         )
         latest.clicked.connect(self.open_latest)
 
-        ready = QPushButton("3. ΔΗΜΙΟΥΡΓΙΑ ΠΑΚΕΤΟΥ / ΑΠΟΣΤΟΛΗ")
+        ready = QPushButton("3. ΠΑΚΕΤΟ / ΑΠΟΣΤΟΛΗ  ⓘ")
         ready.setToolTip(
             "Αντιγράφει τα πιο πρόσφατα πρωτότυπα στον φάκελο του πακέτου για αποστολή. "
             "Τα αντίγραφα του πακέτου δεν είναι πρωτότυπα και δεν πρέπει να επεξεργάζονται."
@@ -220,6 +220,6 @@ class PeriodicalsPage(QWidget):
     def open_latest(self):
         try:
             paths = self.service.latest_paths(self._id())
-            if not paths: raise FileNotFoundError("Δεν υπάρχει ακόμη πρόσφατο αρχείο. Πατήστε πρώτα ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ.")
+            if not paths: raise FileNotFoundError("Δεν υπάρχει ακόμη πρόσφατο αρχείο. Εκτελέστε πρώτα το Βήμα 1 — ΔΗΜΙΟΥΡΓΙΑ ΠΡΩΤΟΤΥΠΩΝ.")
             for p in paths: self.service.open_path(p)
         except Exception as exc: QMessageBox.warning(self, "Περιοδικά", str(exc))
