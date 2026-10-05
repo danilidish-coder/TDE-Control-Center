@@ -516,6 +516,13 @@ class PeriodicalsEngine:
         active = 0
         missing: list[str] = []
         failed: list[str] = []
+
+        # Resolve the exact current source set first.  A package folder is a
+        # temporary send-only mirror, not an archive.  Therefore stale files
+        # from an older definition/run must not remain in it (for example a
+        # DAILY ACTIVITY file left behind in ERMIS 1).
+        resolved: list[tuple[PackageFile, Path]] = []
+        desired_names: set[str] = set()
         for f in self.package_files(package_id, active_only=False):
             if not f.active:
                 self._remove_managed_copy(f, folder)
@@ -525,6 +532,19 @@ class PeriodicalsEngine:
             if src is None or not src.is_file():
                 missing.append(f.name or Path(f.source_path).name)
                 continue
+            resolved.append((f, src))
+            desired_names.add(src.name.casefold())
+
+        # Clean only regular files directly inside this package's dedicated
+        # temporary folder.  Never touch source/archive files or subfolders.
+        try:
+            for existing in folder.iterdir():
+                if existing.is_file() and existing.name.casefold() not in desired_names:
+                    existing.unlink()
+        except OSError as exc:
+            failed.append(f"Καθαρισμός πακέτου [{exc}]")
+
+        for f, src in resolved:
             dest = folder / src.name
             old = Path(f.managed_copy_path) if clean(f.managed_copy_path) else None
             if old is not None and old != dest:
