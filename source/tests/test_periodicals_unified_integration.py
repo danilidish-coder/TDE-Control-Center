@@ -191,3 +191,43 @@ def test_broad_archive_root_does_not_walk_unrelated_nested_report_trees(tmp_path
     latest_date, latest = engine.latest_existing_prepared(row, date(2026, 10, 6))
     assert latest_date == date(2026, 10, 5)
     assert latest == managed
+
+
+def test_daily_movement_gets_its_own_archive_root(tmp_path):
+    common = tmp_path / "HMEΡΗΣΙΑ Δ.Α"
+    common.mkdir()
+    source = common / "ΗΜΕΡHΣΙΑ ΚΙΝΗΣΗ.xlsx"
+    source.write_bytes(b"live")
+    pkg = _pkg(tmp_path / "packages")
+    row = PackageFile(
+        "P1", source.name, str(source), True, PROFILE_AS_IS,
+        "", "", "", str(common), "", "AS_IS", ""
+    )
+    engine = UnifiedPeriodicalsEngine([pkg], [row])
+    assert Path(row.archive_root) == common / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ"
+
+
+def test_package_sync_removes_stale_file_not_in_package_definition(tmp_path):
+    archive = tmp_path / "ARCHIVE"
+    month = archive / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026"
+    month.mkdir(parents=True)
+    source = month / "REPORT 06-10-2026.xlsx"
+    source.write_bytes(b"current")
+
+    packages = tmp_path / "packages"
+    pkg = _pkg(packages, "P1", "ERMIS 1")
+    row = PackageFile(
+        "P1", source.name, str(source), True, PROFILE_SAME_FOLDER,
+        "", str(source), "2026-10-06", str(archive), "", "BAT_MONTH", ""
+    )
+    engine = UnifiedPeriodicalsEngine([pkg], [row])
+
+    package_folder = packages / "ERMIS 1"
+    package_folder.mkdir(parents=True)
+    stale = package_folder / "06-10-26+DAILY ACTIVITY+BCP KRYSTALLOPIGI.doc"
+    stale.write_bytes(b"stale")
+
+    result = engine.sync_package_folder("P1", date(2026, 10, 6))
+    assert result == package_folder
+    assert (package_folder / source.name).read_bytes() == b"current"
+    assert not stale.exists()
