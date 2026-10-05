@@ -138,12 +138,43 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if d <= allowed_date:
                 candidates.append((d, path))
 
+        # IMPORTANT: never rglob() an archive root on the live shared Scan Folder.
+        # Some definitions (notably ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ in ERMIS 1) use the broad
+        # HMEΡΗΣΙΑ Δ.Α root.  Recursive walking then traverses every unrelated
+        # report tree over the network and can make the UI look frozen.
+        #
+        # Managed periodicals are stored exactly as:
+        #   archive_root / YYYY / "<month>. ΜΗΝΑΣ YYYY" / file
+        # so inspect only that two-level structure.  Legacy source/prepared paths
+        # are added explicitly below and therefore remain fully supported.
         if clean(f.archive_root):
             root = Path(f.archive_root)
-            if root.exists():
-                for path in root.rglob("*"):
-                    if path.is_file():
-                        add(path)
+            try:
+                if root.is_dir():
+                    for year_dir in root.iterdir():
+                        if not year_dir.is_dir():
+                            continue
+                        year_name = year_dir.name
+                        if len(year_name) != 4 or not year_name.isdigit():
+                            continue
+                        if int(year_name) > allowed_date.year:
+                            continue
+                        try:
+                            month_entries = year_dir.iterdir()
+                        except OSError:
+                            continue
+                        for month_dir in month_entries:
+                            if not month_dir.is_dir():
+                                continue
+                            try:
+                                for path in month_dir.iterdir():
+                                    if path.is_file():
+                                        add(path)
+                            except OSError:
+                                continue
+            except OSError:
+                pass
+
         if clean(f.prepared_path):
             add(Path(f.prepared_path))
         if clean(f.source_path):
