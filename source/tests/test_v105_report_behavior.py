@@ -61,9 +61,9 @@ def test_current_report_buttons_use_current_or_last_shift():
 def test_periodicals_ui_presents_the_operational_flow_in_true_order():
     root=Path(__file__).resolve().parents[1]
     ui=(root/"app/ui/periodicals_page.py").read_text(encoding="utf-8")
-    step1="1. ΔΗΜΙΟΥΡΓΙΑ / ΕΝΗΜΕΡΩΣΗ ΠΡΩΤΟΤΥΠΩΝ"
+    step1="1. ΔΗΜΙΟΥΡΓΙΑ ΠΡΩΤΟΤΥΠΩΝ"
     step2="2. ΑΝΟΙΓΜΑ & ΕΠΕΞΕΡΓΑΣΙΑ"
-    step3="3. ΔΗΜΙΟΥΡΓΙΑ ΠΑΚΕΤΟΥ / ΑΠΟΣΤΟΛΗ"
+    step3="3. ΠΑΚΕΤΟ / ΑΠΟΣΤΟΛΗ"
     assert step1 in ui and step2 in ui and step3 in ui
     assert ui.index(step1) < ui.index(step2) < ui.index(step3)
     assert "Μην τα επεξεργάζεστε" in ui
