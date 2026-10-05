@@ -55,6 +55,11 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             series = _series_name(source.name or f.name)
             if series and root.name.casefold() == "1. scan folder reports".casefold():
                 root = root / series
+            elif series == "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ" and root.name.casefold() != series.casefold():
+                # Η ζωντανή ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ βρίσκεται ιστορικά ψηλά στο HMEΡΗΣΙΑ Δ.Α.
+                # Από εδώ και πέρα τα ημερήσια πρωτότυπα αρχειοθετούνται σε δικό τους
+                # φάκελο ώστε να μη μπερδεύονται με DAILY ACTIVITY ή άλλα περιοδικά.
+                root = root / series
             f.archive_root = str(root)
             f.profile = PROFILE_UNIFIED
             f.name_template = ""
@@ -67,6 +72,9 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             for ancestor in source.parents:
                 if ancestor.name.casefold() == "1. scan folder reports".casefold():
                     return ancestor / series
+            if series == "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ":
+                root = _structured_root(source)
+                return root if root.name.casefold() == series.casefold() else root / series
         return _structured_root(source)
 
     def add_known_file_to_package(self, package_id: str, source_path: str) -> PackageFile:
