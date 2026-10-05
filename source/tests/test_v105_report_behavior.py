@@ -56,3 +56,15 @@ def test_current_report_buttons_use_current_or_last_shift():
     assert "get_current_or_last_shift" in fines
     assert "get_current_or_last_shift" in refusals
     assert "get_current_or_last_shift" in daily
+
+
+def test_periodicals_ui_presents_the_operational_flow_in_true_order():
+    root=Path(__file__).resolve().parents[1]
+    ui=(root/"app/ui/periodicals_page.py").read_text(encoding="utf-8")
+    step1="1. ΔΗΜΙΟΥΡΓΙΑ / ΕΝΗΜΕΡΩΣΗ ΠΡΩΤΟΤΥΠΩΝ"
+    step2="2. ΑΝΟΙΓΜΑ & ΕΠΕΞΕΡΓΑΣΙΑ"
+    step3="3. ΔΗΜΙΟΥΡΓΙΑ ΠΑΚΕΤΟΥ / ΑΠΟΣΤΟΛΗ"
+    assert step1 in ui and step2 in ui and step3 in ui
+    assert ui.index(step1) < ui.index(step2) < ui.index(step3)
+    assert "Μην τα επεξεργάζεστε" in ui
+    assert "οι αλλαγές τους δεν ενημερώνουν το πρωτότυπο" in ui
