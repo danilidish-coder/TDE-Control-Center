@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: tde-control-center-current-build
+  cancel-in-progress: true
+
 jobs:
   build-test-publish:
     runs-on: windows-latest
