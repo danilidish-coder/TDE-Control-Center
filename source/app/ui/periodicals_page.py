@@ -115,16 +115,47 @@ class PeriodicalsPage(QWidget):
     def _build(self):
         root = QVBoxLayout(self); root.setContentsMargins(0,0,0,0); root.setSpacing(12)
         card = Card(); title = QLabel("ΠΕΡΙΟΔΙΚΑ"); title.setObjectName("Title"); card.layout_box.addWidget(title)
-        text = QLabel("Όλα τα Περιοδικά ακολουθούν την ίδια λογική: αντιγραφή του τελευταίου πραγματικού αρχείου, αλλαγή μόνο της ημερομηνίας και αρχειοθέτηση ανά Έτος / Μήνα.")
-        text.setWordWrap(True); card.layout_box.addWidget(text)
+        guide = QLabel(
+            "<b>ΡΟΗ ΕΡΓΑΣΙΑΣ:</b> 1. Δημιουργία πρωτοτύπων → "
+            "2. Άνοιγμα και επεξεργασία → 3. Δημιουργία πακέτου για αποστολή"
+        )
+        guide.setWordWrap(True); guide.setObjectName("infoBox"); card.layout_box.addWidget(guide)
+        warning = QLabel(
+            "<b>ΠΡΟΣΟΧΗ:</b> Οι αλλαγές γίνονται μόνο στα αρχεία του Βήματος 2. "
+            "Τα αρχεία μέσα στα πακέτα είναι προσωρινά αντίγραφα μόνο για αποστολή. "
+            "<b>Μην τα επεξεργάζεστε — οι αλλαγές τους δεν ενημερώνουν το πρωτότυπο.</b>"
+        )
+        warning.setWordWrap(True); warning.setObjectName("infoBox"); card.layout_box.addWidget(warning)
         card.layout_box.addWidget(QLabel("Πακέτο")); self.pkg = QComboBox(); self.pkg.currentIndexChanged.connect(self._refresh_info); card.layout_box.addWidget(self.pkg)
         self.info = QLabel(); self.info.setWordWrap(True); card.layout_box.addWidget(self.info)
+
         row = QHBoxLayout()
-        prep = QPushButton("ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ"); prep.setObjectName("Primary"); prep.clicked.connect(self.prepare)
-        ready = QPushButton("ΕΤΟΙΜΟ ΠΑΚΕΤΟ"); ready.clicked.connect(self.sync)
-        latest = QPushButton("ΑΝΟΙΓΜΑ ΠΙΟ ΠΡΟΣΦΑΤΩΝ"); latest.clicked.connect(self.open_latest)
-        row.addWidget(prep); row.addWidget(ready); row.addWidget(latest); card.layout_box.addLayout(row)
-        manage = QPushButton("ΔΙΑΧΕΙΡΙΣΗ ΠΑΚΕΤΩΝ"); manage.clicked.connect(self.manage); card.layout_box.addWidget(manage)
+        prep = QPushButton("1. ΔΗΜΙΟΥΡΓΙΑ / ΕΝΗΜΕΡΩΣΗ ΠΡΩΤΟΤΥΠΩΝ")
+        prep.setObjectName("Primary")
+        prep.setToolTip(
+            "Δημιουργεί τα νέα περιοδικά αρχεία και τους φακέλους στο παρασκήνιο. "
+            "Δεν ανοίγει έγγραφο και δεν γίνεται επεξεργασία σε αυτό το βήμα."
+        )
+        prep.clicked.connect(self.prepare)
+
+        latest = QPushButton("2. ΑΝΟΙΓΜΑ & ΕΠΕΞΕΡΓΑΣΙΑ")
+        latest.setToolTip(
+            "Ανοίγει τα πιο πρόσφατα πρωτότυπα αρχεία. "
+            "Εδώ γίνεται η συμπλήρωση και κάθε μεταγενέστερη διόρθωση."
+        )
+        latest.clicked.connect(self.open_latest)
+
+        ready = QPushButton("3. ΔΗΜΙΟΥΡΓΙΑ ΠΑΚΕΤΟΥ / ΑΠΟΣΤΟΛΗ")
+        ready.setToolTip(
+            "Αντιγράφει τα πιο πρόσφατα πρωτότυπα στον φάκελο του πακέτου για αποστολή. "
+            "Τα αντίγραφα του πακέτου δεν είναι πρωτότυπα και δεν πρέπει να επεξεργάζονται."
+        )
+        ready.clicked.connect(self.sync)
+
+        row.addWidget(prep); row.addWidget(latest); row.addWidget(ready); card.layout_box.addLayout(row)
+        manage = QPushButton("ΔΙΑΧΕΙΡΙΣΗ ΠΑΚΕΤΩΝ")
+        manage.setToolTip("Ορισμός πακέτων και των περιοδικών που περιλαμβάνει κάθε πακέτο.")
+        manage.clicked.connect(self.manage); card.layout_box.addWidget(manage)
         root.addWidget(card); root.addStretch(1)
 
     def _id(self): return str(self.pkg.currentData() or "")
@@ -155,16 +186,20 @@ class PeriodicalsPage(QWidget):
     def prepare(self):
         try:
             r = self.service.prepare_package(self._id())
-            msg = f"Ημερομηνία: {r.target_date:%d/%m/%Y}\nΔημιουργήθηκαν: {len(r.prepared)}\nΥπήρχαν ήδη: {len(r.skipped_existing)}"
+            msg = f"Πρωτότυπα για: {r.target_date:%d/%m/%Y}\nΔημιουργήθηκαν: {len(r.prepared)}\nΥπήρχαν ήδη: {len(r.skipped_existing)}"
             if r.failed: msg += f"\nΧρειάζονται έλεγχο: {len(r.failed)}"
-            QMessageBox.information(self, "Περιοδικά", msg); self.refresh()
+            QMessageBox.information(self, "Βήμα 1 — Δημιουργία / ενημέρωση πρωτοτύπων", msg); self.refresh()
         except Exception as exc: QMessageBox.warning(self, "Περιοδικά", str(exc))
 
     def sync(self):
         while True:
             try:
                 folder = self.service.sync_package(self._id())
-                QMessageBox.information(self, "Έτοιμο πακέτο", str(folder)); self.service.open_path(folder); self.refresh(); return
+                QMessageBox.information(
+                    self, "Βήμα 3 — Πακέτο έτοιμο για αποστολή",
+                    f"{folder}\n\nΠΡΟΣΟΧΗ: Τα αρχεία αυτού του φακέλου είναι προσωρινά αντίγραφα για αποστολή. "
+                    "Τυχόν αλλαγές εδώ δεν ενημερώνουν τα πρωτότυπα."
+                ); self.service.open_path(folder); self.refresh(); return
             except IncompletePackageError as exc:
                 details = []
                 if exc.missing: details.append("Δεν βρέθηκαν:\n• " + "\n• ".join(exc.missing))
