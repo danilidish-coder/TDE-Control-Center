@@ -162,3 +162,32 @@ def test_known_catalog_file_is_normalized_when_added_to_second_package(tmp_path)
     assert clone.name_template == ""
     assert clone.folder_layout == "YEAR_MONTH"
     assert Path(clone.archive_root) == root
+
+
+def test_broad_archive_root_does_not_walk_unrelated_nested_report_trees(tmp_path):
+    root = tmp_path / "HMEΡΗΣΙΑ Δ.Α"
+    managed_month = root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026"
+    managed_month.mkdir(parents=True)
+    managed = managed_month / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ 05-10-2026.xlsx"
+    managed.write_bytes(b"managed")
+
+    # This file is newer but belongs to a completely different nested report tree.
+    # The old recursive scan could inspect/select it and on a real UNC Scan Folder
+    # could spend a long time walking thousands of unrelated files.
+    unrelated = (
+        root / "1. SCAN FOLDER REPORTS" / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "06-10-2026"
+        / "ΑΝΑΦΟΡΕΣ 06-10-2026 ΑΞ.ΥΠ..docx"
+    )
+    unrelated.parent.mkdir(parents=True)
+    unrelated.write_bytes(b"unrelated")
+
+    package = _pkg(tmp_path / "packages")
+    row = PackageFile(
+        "P1", managed.name, str(managed), True, PROFILE_AS_IS,
+        "", str(managed), "2026-10-05", str(root), "", "AS_IS", ""
+    )
+    engine = UnifiedPeriodicalsEngine([package], [row])
+
+    latest_date, latest = engine.latest_existing_prepared(row, date(2026, 10, 6))
+    assert latest_date == date(2026, 10, 5)
+    assert latest == managed
