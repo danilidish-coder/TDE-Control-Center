@@ -55,11 +55,6 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             series = _series_name(source.name or f.name)
             if series and root.name.casefold() == "1. scan folder reports".casefold():
                 root = root / series
-            elif series == "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ" and root.name.casefold() != series.casefold():
-                # Η ζωντανή ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ βρίσκεται ιστορικά ψηλά στο HMEΡΗΣΙΑ Δ.Α.
-                # Από εδώ και πέρα τα ημερήσια πρωτότυπα αρχειοθετούνται σε δικό τους
-                # φάκελο ώστε να μη μπερδεύονται με DAILY ACTIVITY ή άλλα περιοδικά.
-                root = root / series
             f.archive_root = str(root)
             f.profile = PROFILE_UNIFIED
             f.name_template = ""
@@ -72,9 +67,6 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             for ancestor in source.parents:
                 if ancestor.name.casefold() == "1. scan folder reports".casefold():
                     return ancestor / series
-            if series == "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ":
-                root = _structured_root(source)
-                return root if root.name.casefold() == series.casefold() else root / series
         return _structured_root(source)
 
     def add_known_file_to_package(self, package_id: str, source_path: str) -> PackageFile:
@@ -146,52 +138,16 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if d <= allowed_date:
                 candidates.append((d, path))
 
-        # First trust the exact paths already recorded for this periodical.
-        # If one of them is already today's operational file, no directory scan
-        # can produce a newer valid candidate, so return immediately.
+        if clean(f.archive_root):
+            root = Path(f.archive_root)
+            if root.exists():
+                for path in root.rglob("*"):
+                    if path.is_file():
+                        add(path)
         if clean(f.prepared_path):
             add(Path(f.prepared_path))
         if clean(f.source_path):
             add(Path(f.source_path))
-        if any(d == allowed_date for d, _path in candidates):
-            return candidates
-
-        # IMPORTANT: never rglob() an archive root on the live shared Scan Folder.
-        # Some definitions (notably ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ in ERMIS 1) use the broad
-        # HMEΡΗΣΙΑ Δ.Α root. Recursive walking then traverses every unrelated
-        # report tree over the network and can make the UI look frozen.
-        #
-        # Managed periodicals are stored exactly as:
-        #   archive_root / YYYY / "<month>. ΜΗΝΑΣ YYYY" / file
-        # so inspect only that two-level structure.
-        if clean(f.archive_root):
-            root = Path(f.archive_root)
-            try:
-                if root.is_dir():
-                    for year_dir in root.iterdir():
-                        if not year_dir.is_dir():
-                            continue
-                        year_name = year_dir.name
-                        if len(year_name) != 4 or not year_name.isdigit():
-                            continue
-                        if int(year_name) > allowed_date.year:
-                            continue
-                        try:
-                            month_entries = year_dir.iterdir()
-                        except OSError:
-                            continue
-                        for month_dir in month_entries:
-                            if not month_dir.is_dir():
-                                continue
-                            try:
-                                for path in month_dir.iterdir():
-                                    if path.is_file():
-                                        add(path)
-                            except OSError:
-                                continue
-            except OSError:
-                pass
-
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
