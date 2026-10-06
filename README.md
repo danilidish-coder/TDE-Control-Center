@@ -1,23 +1,21 @@
-# TDE Control Center
+# Κέντρο Ελέγχου — τρέχουσα v1.0.13
 
-Private repository for the TDE Control Center Windows application.
+Η κύρια έκδοση του πηγαίου κώδικα είναι η **v1.0.13**, ίδια με το tag v1.0.13. Ο έλεγχος ταυτότητας του φακέλου source επιβεβαίωσε ακριβή αντιστοιχία.
 
-## Current validated version
-- **Validated functional version:** `v1.0.13`
-- **Validated source:** `source/`
-- The source was reconstructed from the exact inputs of the successful final v1.0.13 build and passed the same targeted regression tests.
-- A rebuilt Windows EXE from this source also passed the startup smoke test.
+- [Αρχεία έκδοσης v1.0.13](https://github.com/danilidish-coder/TDE-Control-Center/releases/tag/v1.0.13)
+- [Πηγαίος κώδικας v1.0.13](https://github.com/danilidish-coder/TDE-Control-Center/tree/v1.0.13/source)
+- [Έτοιμα προγράμματα στο Drive](https://drive.google.com/drive/folders/1QVkQ95-sHQdF2P74-6lsQGds4m84ocPy)
 
-## Shared visual assets
-`SHARED_ASSETS/` contains the approved reusable:
-- Hellenic Police emblem,
-- Greece map/watermark.
+## Εφεδρεία — δεν χρησιμοποιείται
 
-These files are standalone assets and are not owned by a specific application version.
+Ο νεότερος κώδικας **v1.0.14** διατηρείται ολόκληρος στο [backup/v1.0.14-not-in-use](https://github.com/danilidish-coder/TDE-Control-Center/tree/backup/v1.0.14-not-in-use). Το build αυτής της έκδοσης απέτυχε πριν δημιουργηθεί EXE. Δεν έχει επιλεγεί για χρήση ή για παράδοση στον υπολογιστή και στο Drive.
 
-## Retention rule
-When a version is explicitly accepted as functional:
-1. it becomes the single active baseline,
-2. superseded releases, tags, temporary branches and redundant artifacts are removed,
-3. the validated source remains directly browsable in `source/`,
-4. reusable shared assets remain separately available.
+## Ταυτότητα αρχείων
+
+Στον φάκελο έτοιμων προγραμμάτων χρησιμοποιείται το αρχικό λειτουργικό EXE που είχε παραδοθεί ως TDE_CONTROL_CENTER_v1.0.13_FINAL.exe, με SHA256:
+
+`1DEB923EAB1060B59BB7DA9380B0CD463B17EA0A8B7F3C90BC1CD0E9BEE59DD6`
+
+Τα μεταγενέστερα ανακατασκευασμένα EXE του release έχουν διαφορετικά hashes και παραμένουν ως είχαν. Το όνομα του EXE από μόνο του δεν ταυτοποιεί την έκδοση. Οι συντομεύσεις της εργασίας διατηρούν τον υπάρχοντα προορισμό και το υπάρχον όνομα αρχείου.
+
+Τα builds ξεκινούν πλέον χειροκίνητα, ώστε η οργάνωση να μην αντικαθιστά αυτόματα λειτουργικά αρχεία. Δεν διαγράφηκε ιστορικό, branch, release ή παλιό αρχείο.
