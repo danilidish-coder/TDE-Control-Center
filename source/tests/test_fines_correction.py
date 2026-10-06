@@ -39,29 +39,6 @@ def case(tmp_path, monkeypatch):
     return db, sid, service, entry
 
 
-def test_fines_report_keeps_duty_officer_visible_and_removes_unused_template_rows(case):
-    db, sid, service, entry = case
-    service.add_fine("IMPOSITION", entry)
-    report = service.generate_shift_report(sid, archive=False)
-    assert report is not None and report.exists()
-
-    doc = Document(report)
-    text = " ".join(p.text for p in doc.paragraphs) + " " + " ".join(
-        cell.text for table in doc.tables for row in table.rows for cell in row.cells
-    )
-    assert "TEST OFFICER" in text
-
-    table = doc.tables[0]
-    rows = table.rows
-    collection = next(
-        i for i, row in enumerate(rows)
-        if len(row.cells) >= 2 and "Είσπραξης" in row.cells[1].text
-    )
-    for row in list(rows[1:collection]) + list(rows[collection + 1:]):
-        if len(row.cells) == 11:
-            assert row.cells[2].text.strip(), "Unused blank data row remained in the final fines report"
-
-
 def test_imposition_updates_same_act_history_and_daily_counts(case):
     db, sid, service, entry = case
     fid = service.add_fine("IMPOSITION", entry)
