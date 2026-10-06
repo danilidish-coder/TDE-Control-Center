@@ -2,12 +2,6 @@ name: Build and publish current TDE Control Center
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
-    paths:
-      - 'source/**'
-      - 'VERSION.txt'
-      - '.github/workflows/publish-release.yml'
 
 permissions:
   contents: write
