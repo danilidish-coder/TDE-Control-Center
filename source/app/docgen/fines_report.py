@@ -172,30 +172,6 @@ class FineReportEngine:
     def _clone_row_after(table, rows, sample_index: int) -> None:
         table.append(copy.deepcopy(rows[sample_index]))
 
-    @classmethod
-    def _remove_unused_blank_rows(cls, table) -> None:
-        """Remove unused template rows after the report has been populated.
-
-        The legacy Word template contains several empty data rows.  Keeping all of
-        them pushes the duty-officer signature block too low in the one-page report,
-        so the PDF preview may clip the officer details.  Once entries are written,
-        those spare rows are no longer needed.
-        """
-        rows = table.xpath("./w:tr", namespaces=NS)
-        collection = cls._find_collection_header(rows)
-
-        # Remove unused rows from the imposition section, preserving its header.
-        for row in list(rows[1:collection]):
-            if cls._blank_data_row(row):
-                row.getparent().remove(row)
-
-        # Re-read after mutation and remove unused rows from the collection section.
-        rows = table.xpath("./w:tr", namespaces=NS)
-        collection = cls._find_collection_header(rows)
-        for row in list(rows[collection + 1:]):
-            if cls._blank_data_row(row):
-                row.getparent().remove(row)
-
     def write_entries(self, output_docx: str | Path, entries: Iterable[FineEntry], *, source_docx: str | Path | None = None) -> Path:
         source = Path(source_docx) if source_docx else self.base_docx
         output = Path(output_docx)
@@ -229,11 +205,6 @@ class FineReportEngine:
                     raise ValueError("Η αναφορά Προστίμων πρέπει να έχει 11 στήλες.")
                 for tc, value in zip(cells, vals):
                     set_cell_text(tc, value)
-
-            # Compact the finished report so the Αξιωματικός Υπηρεσίας block
-            # remains visible in the one-page preview/printout.
-            self._remove_unused_blank_rows(table)
-
             xml_path.write_bytes(etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone="yes"))
             _pack(td, output)
         return output
