@@ -29,6 +29,8 @@ from app.ui.shift_reports import ShiftReportsPage
 from app.ui.theme import DARK, LIGHT, stylesheet
 from app.ui.widgets import Card
 
+APP_VERSION = "1.0.14"
+
 
 def _lerp_color(a: tuple[int, int, int], b: tuple[int, int, int], t: float) -> tuple[int, int, int]:
     t = max(0.0, min(1.0, t))
@@ -127,7 +129,7 @@ class MainWindow(QMainWindow):
         self.daily = DailyActivityService(self.db)
         self.periodicals = PeriodicalsService()
         self.pending = PendingService(self.db, self.fines, self.refusals, self.daily)
-        self.setWindowTitle("ΕΛΛΗΝΙΚΗ ΑΣΤΥΝΟΜΙΑ — Τ.Δ.Ε. ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ")
+        self.setWindowTitle(f"ΕΛΛΗΝΙΚΗ ΑΣΤΥΝΟΜΙΑ — Τ.Δ.Ε. ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ — v{APP_VERSION}")
         self.resize(1540, 900)
         self.setMinimumSize(1180, 780)
         self.theme_name = self.db.get_preference("theme", "dark")
@@ -190,7 +192,7 @@ class MainWindow(QMainWindow):
             sl.addWidget(b)
         sl.addStretch(1)
         self.pending_btn = QPushButton("ΕΝΗΜΕΡΩΣΗ ΕΚΚΡΕΜΩΝ"); self.pending_btn.setIcon(QIcon(str(resource_path("skin_refresh.svg")))); self.pending_btn.setIconSize(QSize(34,34)); self.pending_btn.clicked.connect(self.retry_pending); sl.addWidget(self.pending_btn)
-        self.version_label = QLabel("ΕΚΔΟΣΗ 1.0.13"); self.version_label.setObjectName("VersionLabel"); self.version_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter); sl.addWidget(self.version_label)
+        self.version_label = QLabel(f"ΕΚΔΟΣΗ {APP_VERSION}"); self.version_label.setObjectName("VersionLabel"); self.version_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter); sl.addWidget(self.version_label)
         body.addWidget(side)
 
         self.stack = QStackedWidget(); body.addWidget(self.stack,1)
