@@ -109,8 +109,14 @@ class ProtocolWorkbookWriter:
                 ws.Range("A5:F10").VerticalAlignment = -4160
             except Exception:
                 pass
-            _set_shape_text(ws, "TextBox 3", f"Ο ΠΑΡΑΔΟΥΣ\n\n{collector}".rstrip())
-            _set_shape_text(ws, "TextBox 5", f"Ο ΠΑΡΑΛΑΒΩΝ\n\n{receiver}".rstrip())
+            collector_sig = f"Ο ΠΑΡΑΔΟΥΣ\n{collector}".rstrip()
+            receiver_sig = f"Ο ΠΑΡΑΛΑΒΩΝ\n{receiver}".rstrip()
+            if collector and receiver:
+                stamp_text = stamp.strftime("%d/%m/%Y %H:%M")
+                collector_sig += f"\nΗλεκτρονική καταχώριση παράδοσης: {stamp_text}"
+                receiver_sig += f"\nΗλεκτρονική καταχώριση παραλαβής: {stamp_text}"
+            _set_shape_text(ws, "TextBox 3", collector_sig)
+            _set_shape_text(ws, "TextBox 5", receiver_sig)
 
             ws.Range(f"A{first_row}:F{summary-1}").ClearContents()
             for idx, row in enumerate(data, start=1):
