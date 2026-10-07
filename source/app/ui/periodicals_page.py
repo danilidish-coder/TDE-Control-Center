@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QListWidget,
+    QApplication, QComboBox, QDialog, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QListWidget,
     QListWidgetItem, QMessageBox, QPushButton, QVBoxLayout, QWidget
 )
 
@@ -119,11 +119,14 @@ class PeriodicalsPage(QWidget):
         text.setWordWrap(True); card.layout_box.addWidget(text)
         card.layout_box.addWidget(QLabel("Πακέτο")); self.pkg = QComboBox(); self.pkg.currentIndexChanged.connect(self._refresh_info); card.layout_box.addWidget(self.pkg)
         self.info = QLabel(); self.info.setWordWrap(True); card.layout_box.addWidget(self.info)
+        self.flow_status = QLabel("ΒΗΜΑ 1: Πατήστε «ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ» για να ξεκινήσετε.")
+        self.flow_status.setWordWrap(True); card.layout_box.addWidget(self.flow_status)
         row = QHBoxLayout()
-        prep = QPushButton("ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ"); prep.setObjectName("Primary"); prep.clicked.connect(self.prepare)
-        ready = QPushButton("ΕΤΟΙΜΟ ΠΑΚΕΤΟ"); ready.clicked.connect(self.sync)
-        latest = QPushButton("ΑΝΟΙΓΜΑ ΠΙΟ ΠΡΟΣΦΑΤΩΝ"); latest.clicked.connect(self.open_latest)
-        row.addWidget(prep); row.addWidget(ready); row.addWidget(latest); card.layout_box.addLayout(row)
+        self.prep_btn = QPushButton("ΒΗΜΑ 1 — ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ"); self.prep_btn.setObjectName("Primary"); self.prep_btn.clicked.connect(self.prepare)
+        self.latest_btn = QPushButton("ΒΗΜΑ 2 — ΑΝΟΙΓΜΑ ΕΝΗΜΕΡΩΜΕΝΩΝ ΠΡΟΣ ΣΥΜΠΛΗΡΩΣΗ Ή ΔΙΟΡΘΩΣΗ"); self.latest_btn.clicked.connect(self.open_latest)
+        self.ready_btn = QPushButton("ΒΗΜΑ 3 — ΔΗΜΙΟΥΡΓΙΑ ΟΜΑΔΩΝ ΠΕΡΙΟΔΙΚΩΝ ΚΑΙ ΕΤΟΙΜΑΣΙΑ ΠΡΟΣ ΑΠΟΣΤΟΛΗ"); self.ready_btn.clicked.connect(self.sync)
+        self.latest_btn.setEnabled(False); self.ready_btn.setEnabled(False)
+        row.addWidget(self.prep_btn); row.addWidget(self.latest_btn); row.addWidget(self.ready_btn); card.layout_box.addLayout(row)
         manage = QPushButton("ΔΙΑΧΕΙΡΙΣΗ ΠΑΚΕΤΩΝ"); manage.clicked.connect(self.manage); card.layout_box.addWidget(manage)
         root.addWidget(card); root.addStretch(1)
 
@@ -145,6 +148,10 @@ class PeriodicalsPage(QWidget):
             self.info.setText("Δεν υπάρχει ενεργό πακέτο."); return
         p = self.engine.packages[pid]; files = self.engine.package_files(pid)
         self.info.setText(f"{p.name} · {len(files)} ενεργά αρχεία\nΠρος: {p.to or '—'}\n{p.notes or ''}")
+        if hasattr(self, "latest_btn"):
+            self.latest_btn.setEnabled(False)
+            self.ready_btn.setEnabled(False)
+            self.flow_status.setText("ΒΗΜΑ 1: Πατήστε «ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ» για να ξεκινήσετε.")
 
     def manage(self):
         current = self._id(); PackageManagerDialog(self.service, self).exec(); self.refresh()
@@ -154,13 +161,31 @@ class PeriodicalsPage(QWidget):
 
     def prepare(self):
         try:
+            self.prep_btn.setEnabled(False)
+            self.latest_btn.setEnabled(False)
+            self.ready_btn.setEnabled(False)
+            self.flow_status.setText("Παρακαλώ περιμένετε... γίνεται ενημέρωση των αρχείων.")
+            QApplication.processEvents()
             r = self.service.prepare_package(self._id())
+            if r.failed:
+                self.flow_status.setText("Η ενημέρωση δεν ολοκληρώθηκε πλήρως. Ελέγξτε τα αρχεία που χρειάζονται έλεγχο και επαναλάβετε το Βήμα 1.")
+                msg = f"Ημερομηνία: {r.target_date:%d/%m/%Y}\nΔημιουργήθηκαν: {len(r.prepared)}\nΥπήρχαν ήδη: {len(r.skipped_existing)}\nΧρειάζονται έλεγχο: {len(r.failed)}"
+                QMessageBox.warning(self, "Περιοδικά", msg)
+                return
+            self.latest_btn.setEnabled(True)
+            self.ready_btn.setEnabled(True)
+            self.flow_status.setText("Η ενημέρωση ολοκληρώθηκε. Πηγαίνετε στο ΒΗΜΑ 2 για συμπλήρωση ή διόρθωση των ενημερωμένων αρχείων.")
             msg = f"Ημερομηνία: {r.target_date:%d/%m/%Y}\nΔημιουργήθηκαν: {len(r.prepared)}\nΥπήρχαν ήδη: {len(r.skipped_existing)}"
-            if r.failed: msg += f"\nΧρειάζονται έλεγχο: {len(r.failed)}"
-            QMessageBox.information(self, "Περιοδικά", msg); self.refresh()
-        except Exception as exc: QMessageBox.warning(self, "Περιοδικά", str(exc))
+            QMessageBox.information(self, "Περιοδικά", msg)
+        except Exception as exc:
+            self.flow_status.setText("Η ενημέρωση δεν ολοκληρώθηκε. Επαναλάβετε το ΒΗΜΑ 1.")
+            QMessageBox.warning(self, "Περιοδικά", str(exc))
+        finally:
+            self.prep_btn.setEnabled(True)
 
     def sync(self):
+        self.flow_status.setText("ΒΗΜΑ 3: Δημιουργία ομάδων Περιοδικών και προετοιμασία προς αποστολή. Δεν γίνεται καμία διόρθωση αρχείων σε αυτό το βήμα.")
+        QApplication.processEvents()
         while True:
             try:
                 folder = self.service.sync_package(self._id())
@@ -184,6 +209,8 @@ class PeriodicalsPage(QWidget):
 
     def open_latest(self):
         try:
+            self.flow_status.setText("ΒΗΜΑ 2: Ανοίγουν τα ενημερωμένα αρχεία για συμπλήρωση ή διόρθωση. Όταν ολοκληρώσετε, προχωρήστε στο ΒΗΜΑ 3.")
+            QApplication.processEvents()
             paths = self.service.latest_paths(self._id())
             if not paths: raise FileNotFoundError("Δεν υπάρχει ακόμη πρόσφατο αρχείο. Πατήστε πρώτα ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ.")
             for p in paths: self.service.open_path(p)
