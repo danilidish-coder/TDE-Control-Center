@@ -230,7 +230,9 @@ class VasReportEngine:
             r=etree.SubElement(p,f'{{{W}}}r');t=etree.SubElement(r,f'{{{W}}}t');t.text=text
 
     def create(self, output: str | Path, entries: Iterable[RefusalEntry], start_date: str, end_date: str,
-               start_time: str = "10:00", end_time: str = "10:00") -> Path:
+               start_time: str = "10:00", end_time: str = "10:00",
+               officer_name: str = "", officer_rank: str = "", officer_agms: str = "",
+               signed_at: str = "") -> Path:
         output=Path(output)
         with tempfile.TemporaryDirectory() as td0:
             td=Path(td0);_extract(self.reference,td)
@@ -285,6 +287,17 @@ class VasReportEngine:
                     n=copy.deepcopy(note_tpl);self._set_paragraph_text(n,'ΣΗΜΕΙΩΣΗ: '+e.notes());body.insert(insert_at,n);insert_at+=1
                 if idx < len(entry_list)-1:
                     sp=copy.deepcopy(sep_tpl);self._set_paragraph_text(sp,'--------------------------------------------------');body.insert(insert_at,sp);insert_at+=1
+            if clean(officer_name):
+                sig=copy.deepcopy(intro)
+                identity=clean(officer_name).upper()
+                detail=clean(officer_rank).upper()
+                if clean(officer_agms):
+                    detail = (detail + " - " if detail else "") + f"ΑΓΜΣ {clean(officer_agms)}"
+                text=f"{identity}\n{detail}".strip()
+                if clean(signed_at):
+                    text += f"\nΗ αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {clean(signed_at)}."
+                self._set_paragraph_text(sig,text)
+                body.insert(insert_at,sig);insert_at+=1
             xml.write_bytes(etree.tostring(root,xml_declaration=True,encoding='UTF-8',standalone='yes'))
             _pack(td,output)
         return output
