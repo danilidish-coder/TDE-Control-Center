@@ -308,8 +308,14 @@ class DailyActivityService:
         setv(44,1,"Υπηρεσία Σύλληψης:"); setv(44,2,s["other_arrests_service"],center=True)
 
         ws.merge_cells("C47:D47"); setv(47,3,"Ο ΑΞΙΩΜΑΤΙΚΟΣ ΥΠΗΡΕΣΙΑΣ",bold=True,center=True)
-        ws.merge_cells("C49:D49"); setv(49,3,shift["officer_name"],bold=True,center=True)
-        ws.merge_cells("C50:D50"); setv(50,3,shift["officer_rank_full"] or shift["officer_rank_short"],center=True)
+        ws.merge_cells("C48:D48"); setv(48,3,shift["officer_name"],bold=True,center=True)
+        signature_detail = " - ".join(x for x in (shift["officer_rank_full"] or shift["officer_rank_short"], f"ΑΓΜΣ {shift['officer_agms']}" if shift["officer_agms"] else "") if x)
+        ws.merge_cells("C49:D49"); setv(49,3,signature_detail,center=True)
+        if shift["ended_at"]:
+            signed_at = datetime.fromisoformat(shift["ended_at"])
+            ws.merge_cells("C50:D50"); setv(50,3,f"Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {signed_at:%d/%m/%Y %H:%M}.",center=True,size=9)
+        else:
+            ws.merge_cells("C50:D50"); setv(50,3,"",center=True)
 
         for r in range(1, 51):
             ws.row_dimensions[r].height = 22
