@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os
-from app.services.pdf_preview import open_document_preview
 from datetime import datetime
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QComboBox,QGridLayout,QHBoxLayout,QLabel,QLineEdit,QMessageBox,QPushButton,QTableWidget,QTableWidgetItem,QVBoxLayout,QWidget
@@ -166,6 +165,6 @@ class FinesPage(QWidget):
             if not shift: raise ValueError('Δεν υπάρχει διαθέσιμη βάρδια για αναφορά.')
             path=self.service.generate_shift_report(int(shift['id']),archive=False)
             if path is None: raise ValueError('Δεν υπάρχουν καταχωρίσεις Προστίμων στη βάρδια.')
-            if os.name=='nt': open_document_preview(path)
+            if os.name=='nt': os.startfile(str(path))
             else: QMessageBox.information(self,'Προεπισκόπηση',f'Δημιουργήθηκε:\n{path}')
         except Exception as exc: QMessageBox.warning(self,'Προεπισκόπηση Προστίμων',str(exc))
