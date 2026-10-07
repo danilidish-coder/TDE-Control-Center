@@ -391,6 +391,7 @@ class FineService:
                 end_dt=final_end,
                 officer_rank_short=shift["officer_rank_short"] or "Ανθ/μου",
                 officer_rank_full=shift["officer_rank_full"] or "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
+                electronically_signed=bool(shift["ended_at"]),
             )
             try:
                 self.engine.write_entries(output, [self._row_to_entry(x) for x in rows], source_docx=header_tmp)
