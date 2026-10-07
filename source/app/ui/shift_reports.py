@@ -218,6 +218,9 @@ class ShiftReportsPage(QWidget):
                 path = self.daily.generate(shift_id, archive=True)
             else:
                 raise ValueError("Άγνωστος τύπος αναφοράς.")
-            self._open(path)
+            if kind == "FINES" and os.name == "nt":
+                os.startfile(str(path))
+            else:
+                self._open(path)
         except Exception as exc:
             QMessageBox.warning(self, "Αρχείο Αναφορών", str(exc))
