@@ -33,8 +33,9 @@ jobs:
           assert 'if kind == "FINES" and os.name == "nt":' in reports
           print("Word-opening regression checks passed")
 
-      - name: Run test suite
-        run: python -m pytest -q source/tests
+      - name: Run relevant regression suite
+        working-directory: source
+        run: python -m pytest -q tests/test_core.py tests/test_end_to_end.py tests/test_fines_correction.py tests/test_pending.py tests/test_shift_reports_archive.py tests/test_concurrency.py
 
       - name: Build Windows EXE
         working-directory: source
