@@ -1,4 +1,4 @@
-name: Test fines Word preview build
+name: Build v1.0.14 test release
 
 on:
   push:
@@ -49,24 +49,24 @@ jobs:
           Start-Sleep -Seconds 8
           if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
           Stop-Process -Id $p.Id -Force
-          Copy-Item $exe '.\TDE_CONTROL_CENTER_TEST_FINE_WORD.exe'
-          Get-FileHash '.\TDE_CONTROL_CENTER_TEST_FINE_WORD.exe' -Algorithm SHA256
+          Copy-Item $exe '.\TDE_CONTROL_CENTER_v1.0.14_TEST.exe'
+          Get-FileHash '.\TDE_CONTROL_CENTER_v1.0.14_TEST.exe' -Algorithm SHA256
 
       - name: Publish isolated test prerelease asset
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = 'test-fines-word-20261007'
-          $asset = 'TDE_CONTROL_CENTER_TEST_FINE_WORD.exe'
+          $tag = 'v1.0.14-test'
+          $asset = 'TDE_CONTROL_CENTER_v1.0.14_TEST.exe'
           gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --prerelease --title 'TEST - Fines Word Preview' --notes 'Isolated test build. Not the production/latest release.' --target $env:GITHUB_SHA --repo $env:GITHUB_REPOSITORY
+            gh release create $tag --prerelease --title 'v1.0.14 TEST' --notes 'Test build of v1.0.14. Production v1.0.13 remains available for rollback.' --target $env:GITHUB_SHA --repo $env:GITHUB_REPOSITORY
             if ($LASTEXITCODE -ne 0) { throw 'Failed to create test prerelease' }
           }
           gh release upload $tag $asset --clobber --repo $env:GITHUB_REPOSITORY
           if ($LASTEXITCODE -ne 0) { throw 'Failed to upload test EXE to prerelease' }
-          $assetId = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" --jq '.assets[] | select(.name=="TDE_CONTROL_CENTER_TEST_FINE_WORD.exe") | .id'
+          $assetId = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/$tag" --jq '.assets[] | select(.name=="TDE_CONTROL_CENTER_v1.0.14_TEST.exe") | .id'
           if (-not $assetId) { throw 'Asset id not found' }
           $apiUrl="https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/assets/$assetId"
           curl.exe -sS -D redirect_headers.txt -o NUL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" $apiUrl
