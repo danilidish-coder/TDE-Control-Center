@@ -1,0 +1,60 @@
+name: Test fines Word preview build
+
+on:
+  push:
+    branches:
+      - test-fines-word-preview
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install PyInstaller PySide6==6.9.2 lxml pywin32 openpyxl python-docx pytest
+
+      - name: Verify fines open as Word
+        shell: python
+        run: |
+          from pathlib import Path
+          fines = Path("source/app/ui/fines_page.py").read_text(encoding="utf-8")
+          reports = Path("source/app/ui/shift_reports.py").read_text(encoding="utf-8")
+          assert "os.startfile(str(path))" in fines
+          assert "open_document_preview(path)" not in fines
+          assert 'if kind == "FINES" and os.name == "nt":' in reports
+          print("Word-opening regression checks passed")
+
+      - name: Run test suite
+        run: python -m pytest -q source/tests
+
+      - name: Build Windows EXE
+        working-directory: source
+        run: python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
+
+      - name: Smoke test EXE
+        shell: pwsh
+        run: |
+          $exe = '.\source\dist\TDE_CONTROL_CENTER_v1.0.exe'
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          Copy-Item $exe '.\TDE_CONTROL_CENTER_TEST_FINE_WORD.exe'
+          Get-FileHash '.\TDE_CONTROL_CENTER_TEST_FINE_WORD.exe' -Algorithm SHA256
+
+      - name: Upload test EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: TDE_CONTROL_CENTER_TEST_FINE_WORD
+          path: TDE_CONTROL_CENTER_TEST_FINE_WORD.exe
+          if-no-files-found: error
+          retention-days: 7
