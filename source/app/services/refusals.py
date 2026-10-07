@@ -364,7 +364,11 @@ class RefusalService:
             self.vas_engine.create(
                 output, [self._row_to_entry(r) for r in rows],
                 start.strftime('%d-%m-%Y'), end.strftime('%d-%m-%Y'),
-                start_time=start.strftime('%H:%M'), end_time=end.strftime('%H:%M')
+                start_time=start.strftime('%H:%M'), end_time=end.strftime('%H:%M'),
+                officer_name=shift['officer_name'] or '',
+                officer_rank=shift['officer_rank_full'] or shift['officer_rank_short'] or '',
+                officer_agms=shift['officer_agms'] or '',
+                signed_at=(datetime.fromisoformat(shift['ended_at']).strftime('%d/%m/%Y %H:%M') if shift['ended_at'] else '')
             )
             return output
 
