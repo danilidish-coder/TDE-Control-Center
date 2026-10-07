@@ -101,7 +101,8 @@ class FineReportEngine:
     def create_report_window(self, output_docx: str | Path, *, officer_name: str, officer_agms: str,
                              start_dt: datetime, end_dt: datetime,
                              officer_rank_short: str = "Ανθ/μου",
-                             officer_rank_full: str = "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ") -> Path:
+                             officer_rank_full: str = "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
+                             electronically_signed: bool = False) -> Path:
         """Create a clean live Anafora for an explicitly approved date/time window.
 
         This is the first deliberate deviation from the VBA workflow: the operator may
@@ -121,13 +122,16 @@ class FineReportEngine:
             if replace_sequence(root, "[RANK_SHORT]", clean(officer_rank_short) or "Ανθ/μου") == 0:
                 replace_sequence(root, "Ανθ/μου", clean(officer_rank_short) or "Ανθ/μου")
             agms = clean(officer_agms)
-            officer_identity = clean(officer_name).upper()
+            officer_name_display = clean(officer_name).upper()
+            signature_detail = clean(officer_rank_full).upper()
             if agms:
-                officer_identity = f"{officer_identity} - ΑΓΜΣ {agms}"
-            if replace_sequence(root, "[AGMS]", agms) == 0:
-                replace_sequence(root, "268862", agms)
-            if replace_sequence(root, "[OFFICER_NAME]", officer_identity) == 0:
-                replace_sequence(root, "ΚΛΙΑΝΗΣ ΧΡΗΣΤΟΣ", officer_identity)
+                signature_detail = f"{signature_detail} - ΑΓΜΣ {agms}"
+            if electronically_signed:
+                signature_detail += " | Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας."
+            if replace_sequence(root, "[AGMS]", "") == 0:
+                replace_sequence(root, "268862", "")
+            if replace_sequence(root, "[OFFICER_NAME]", officer_name_display) == 0:
+                replace_sequence(root, "ΚΛΙΑΝΗΣ ΧΡΗΣΤΟΣ", officer_name_display)
 
             if replace_sequence(root, "[START_DATE]", start_dt.strftime("%d/%m/%Y")) == 0:
                 replace_sequence(root, "15/09/2026", start_dt.strftime("%d/%m/%Y"))
@@ -145,8 +149,8 @@ class FineReportEngine:
                 if not replace_sequence_occurrence(root, "10:00", start_dt.strftime("%H:%M"), 1):
                     raise ValueError("Δεν βρέθηκε η ώρα έναρξης στο πρότυπο Αναφοράς.")
 
-            if replace_sequence(root, "[RANK_FULL]", clean(officer_rank_full).upper()) == 0:
-                replace_sequence(root, "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ", clean(officer_rank_full).upper())
+            if replace_sequence(root, "[RANK_FULL]", signature_detail) == 0:
+                replace_sequence(root, "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ", signature_detail)
             xml_path.write_bytes(etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone="yes"))
             _pack(td, output)
         return output
