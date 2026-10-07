@@ -120,10 +120,14 @@ class FineReportEngine:
             # with the original literal-based reference during QA/recovery.
             if replace_sequence(root, "[RANK_SHORT]", clean(officer_rank_short) or "Ανθ/μου") == 0:
                 replace_sequence(root, "Ανθ/μου", clean(officer_rank_short) or "Ανθ/μου")
-            if replace_sequence(root, "[AGMS]", clean(officer_agms)) == 0:
-                replace_sequence(root, "268862", clean(officer_agms))
-            if replace_sequence(root, "[OFFICER_NAME]", clean(officer_name).upper()) == 0:
-                replace_sequence(root, "ΚΛΙΑΝΗΣ ΧΡΗΣΤΟΣ", clean(officer_name).upper())
+            agms = clean(officer_agms)
+            officer_identity = clean(officer_name).upper()
+            if agms:
+                officer_identity = f"{officer_identity} - ΑΓΜΣ {agms}"
+            if replace_sequence(root, "[AGMS]", agms) == 0:
+                replace_sequence(root, "268862", agms)
+            if replace_sequence(root, "[OFFICER_NAME]", officer_identity) == 0:
+                replace_sequence(root, "ΚΛΙΑΝΗΣ ΧΡΗΣΤΟΣ", officer_identity)
 
             if replace_sequence(root, "[START_DATE]", start_dt.strftime("%d/%m/%Y")) == 0:
                 replace_sequence(root, "15/09/2026", start_dt.strftime("%d/%m/%Y"))
