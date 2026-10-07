@@ -121,12 +121,13 @@ class PeriodicalsPage(QWidget):
         self.info = QLabel(); self.info.setWordWrap(True); card.layout_box.addWidget(self.info)
         self.flow_status = QLabel("ΒΗΜΑ 1: Πατήστε «ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ» για να ξεκινήσετε.")
         self.flow_status.setWordWrap(True); card.layout_box.addWidget(self.flow_status)
-        row = QHBoxLayout()
         self.prep_btn = QPushButton("ΒΗΜΑ 1 — ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ"); self.prep_btn.setObjectName("Primary"); self.prep_btn.clicked.connect(self.prepare)
         self.latest_btn = QPushButton("ΒΗΜΑ 2 — ΑΝΟΙΓΜΑ ΕΝΗΜΕΡΩΜΕΝΩΝ ΠΡΟΣ ΣΥΜΠΛΗΡΩΣΗ Ή ΔΙΟΡΘΩΣΗ"); self.latest_btn.clicked.connect(self.open_latest)
         self.ready_btn = QPushButton("ΒΗΜΑ 3 — ΔΗΜΙΟΥΡΓΙΑ ΟΜΑΔΩΝ ΠΕΡΙΟΔΙΚΩΝ ΚΑΙ ΕΤΟΙΜΑΣΙΑ ΠΡΟΣ ΑΠΟΣΤΟΛΗ"); self.ready_btn.clicked.connect(self.sync)
         self.latest_btn.setEnabled(False); self.ready_btn.setEnabled(False)
-        row.addWidget(self.prep_btn); row.addWidget(self.latest_btn); row.addWidget(self.ready_btn); card.layout_box.addLayout(row)
+        for button in (self.prep_btn, self.latest_btn, self.ready_btn):
+            button.setMinimumHeight(48)
+            card.layout_box.addWidget(button)
         manage = QPushButton("ΔΙΑΧΕΙΡΙΣΗ ΠΑΚΕΤΩΝ"); manage.clicked.connect(self.manage); card.layout_box.addWidget(manage)
         root.addWidget(card); root.addStretch(1)
 
