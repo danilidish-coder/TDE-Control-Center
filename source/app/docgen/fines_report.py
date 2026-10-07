@@ -102,7 +102,8 @@ class FineReportEngine:
                              start_dt: datetime, end_dt: datetime,
                              officer_rank_short: str = "Ανθ/μου",
                              officer_rank_full: str = "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
-                             electronically_signed: bool = False) -> Path:
+                             electronically_signed: bool = False,
+                             signed_at: datetime | None = None) -> Path:
         """Create a clean live Anafora for an explicitly approved date/time window.
 
         This is the first deliberate deviation from the VBA workflow: the operator may
@@ -127,7 +128,10 @@ class FineReportEngine:
             if agms:
                 signature_detail = f"{signature_detail} - ΑΓΜΣ {agms}"
             if electronically_signed:
-                signature_detail += " | Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας."
+                signature_detail += " | Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας"
+                if signed_at is not None:
+                    signature_detail += f" στις {signed_at.strftime('%d/%m/%Y %H:%M')}"
+                signature_detail += "."
             if replace_sequence(root, "[AGMS]", "") == 0:
                 replace_sequence(root, "268862", "")
             if replace_sequence(root, "[OFFICER_NAME]", officer_name_display) == 0:
