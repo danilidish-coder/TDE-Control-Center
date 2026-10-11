@@ -1,0 +1,36 @@
+name: Archive v1.0.14 for Drive
+
+on:
+  push:
+    branches:
+      - test-fines-word-preview
+    paths:
+      - '.github/workflows/archive-v1.0.14-for-drive.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout final main source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download final v1.0.14 EXE
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download v1.0.14 --pattern 'TDE_CONTROL_CENTER_v1.0.14.exe' --repo "${GITHUB_REPOSITORY}"
+
+      - name: Create full archive
+        run: zip -r TDE_CONTROL_CENTER_v1.0.14_FULL.zip source VERSION.txt PRODUCTION_STATUS.md TDE_CONTROL_CENTER_v1.0.14.exe
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TDE_CONTROL_CENTER_v1.0.14_FULL
+          path: TDE_CONTROL_CENTER_v1.0.14_FULL.zip
+          if-no-files-found: error
+          retention-days: 30
