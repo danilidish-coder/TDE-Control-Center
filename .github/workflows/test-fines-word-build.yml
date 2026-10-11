@@ -52,6 +52,21 @@ jobs:
           Copy-Item $exe '.\TDE_CONTROL_CENTER_v1.0.14.exe'
           Get-FileHash '.\TDE_CONTROL_CENTER_v1.0.14.exe' -Algorithm SHA256
 
+      - name: Create full release archive
+        shell: pwsh
+        run: |
+          $zip = '.\TDE_CONTROL_CENTER_v1.0.14_FULL.zip'
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path '.\source', '.\VERSION.txt', '.\PRODUCTION_STATUS.md', '.\TDE_CONTROL_CENTER_v1.0.14.exe' -DestinationPath $zip -CompressionLevel Optimal
+
+      - name: Upload full release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: TDE_CONTROL_CENTER_v1.0.14_FULL
+          path: TDE_CONTROL_CENTER_v1.0.14_FULL.zip
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Publish isolated test prerelease asset
         shell: pwsh
         env:
