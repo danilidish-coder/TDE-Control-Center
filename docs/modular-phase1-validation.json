@@ -43,5 +43,7 @@
     "workbooks": 1,
     "sha256": "e490ccd1e9289f6e50441a8bab46a3b5546e1c39f361eb61e2d571936cab21ae"
   },
-  "windows_status": "Pending dedicated Windows workflow; local host is Linux"
+  "windows_status": "Unverified: api.github.com CONNECT 403; no start/final result retrieved from Git evidence ref",
+  "validated_source_commit": "d1df03b",
+  "evidence_publication_local_check": "Two synthetic Git publications passed; source HEAD/index preserved and ignored build log included"
 }
