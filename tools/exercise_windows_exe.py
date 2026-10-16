@@ -46,8 +46,11 @@ def exercise(executable, output):
             finally:
                 connection.close()
         def button(parent, text):
-            control = parent.child_window(title=text, control_type='Button').wrapper_object()
-            control.click_input()
+            controls = [control for control in parent.descendants(control_type='Button')
+                        if control.is_visible() and control.window_text() == text]
+            if len(controls) != 1:
+                raise AssertionError(f'Expected one visible button {text!r}, got {len(controls)}')
+            controls[0].click_input()
         try:
             environment = dict(os.environ)
             environment.pop('QT_QPA_PLATFORM', None)
