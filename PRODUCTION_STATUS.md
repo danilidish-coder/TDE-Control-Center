@@ -1,5 +1,10 @@
 # Production status
 
+> **Μητρώο ταυτότητας εκδόσεων:** [docs/VERSION_REGISTRY_EL.md](docs/VERSION_REGISTRY_EL.md). Για κάθε νέα έκδοση ενημερώνεται ταυτόχρονα αυτό το status, το μητρώο, το README και το μητρώο Drive. Το «validated production» είναι η καταγεγραμμένη έκδοση του έργου, όχι ανεξάρτητη επιβεβαίωση της έκδοσης εγκατάστασης σε κάθε υπηρεσιακό υπολογιστή.
+
+> **Έλεγχος 16/10/2026:** Το EXE του Drive ελέγχθηκε από τα πραγματικά bytes: **59.828.619 bytes**, SHA-256 **49BCC1A1214E0C0395A0E3F7FC96730B7D57E16642B27CDECFAEC7F168F44573**, ακριβής συμφωνία με την παρούσα καταγραφή. Το tag `v1.0.14` δείχνει στο προγενέστερο commit `1a974727...`· το τελικό source commit που δηλώνεται εδώ είναι το επόμενο `a0076c9...`. Μην συγχέετε τις δύο πηγές.
+
+
 ## Current validated production
 - Version: **v1.0.14**
 - Authoritative source: `source/`
