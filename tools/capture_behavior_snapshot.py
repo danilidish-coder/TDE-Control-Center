@@ -1,5 +1,6 @@
 """Compare fixed synthetic business data and document content across source trees."""
 from datetime import datetime
+import gc
 import json
 from pathlib import Path
 import sys
@@ -68,3 +69,4 @@ with tempfile.TemporaryDirectory(prefix='tde-behavior-') as scratch:
     encoded = json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2, default=str).replace(str(runtime).replace('\\', '\\\\'), '<RUNTIME>')
     Path(sys.argv[2]).write_text(encoded + '\n', encoding='utf-8')
     print(f'Captured {len(tables)} SQLite tables, {len(documents)} Word documents, {len(workbooks)} workbooks')
+    gc.collect()

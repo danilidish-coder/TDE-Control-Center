@@ -3,7 +3,8 @@
 Usage: python tools/capture_ui_snapshot.py SOURCE_DIRECTORY OUTPUT_JSON
 Run in a fresh process per source tree with QT_QPA_PLATFORM=offscreen.
 """
-import json,pathlib,sys,tempfile
+import gc,json,pathlib,sys,tempfile
+from PySide6.QtCore import QCoreApplication, QEvent
 from datetime import datetime
 from PySide6.QtWidgets import QApplication,QWidget,QLabel,QAbstractButton,QLineEdit,QComboBox,QTableWidget,QTabWidget
 sys.path.insert(0,sys.argv[1])
@@ -36,5 +37,13 @@ for theme in ('dark','light'):
  win.theme_name=theme;win.apply_theme()
  for name in ('fines','refusals','daily','periodics','people','receipts'):
   win.show_page(name);app.processEvents();out[theme+'/'+name]=capture()
-pathlib.Path(sys.argv[2]).write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
-win.close();runtime.cleanup();print('Captured',len(out),'views')
+pathlib.Path(sys.argv[2]).write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n', encoding='utf-8')
+win.timer.stop()
+win.close()
+win.deleteLater()
+QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+app.processEvents()
+del win
+gc.collect()
+runtime.cleanup()
+print('Captured',len(out),'views')

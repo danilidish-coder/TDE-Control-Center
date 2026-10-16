@@ -54,23 +54,35 @@ jobs:
           exit 0
       - name: Require identical historical outcomes and all new tests passing
         run: python tools/compare_regressions.py --baseline validation/baseline-windows.xml --current validation/modular-windows.xml --output validation/windows-comparison.json
+      - name: Diagnose previous UI snapshot exit against original source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess, sys, json
+          old = subprocess.check_output(['git', 'show', '3f8d094:tools/capture_ui_snapshot.py'])
+          Path('validation/previous_snapshot.py').write_bytes(old)
+          with Path('validation/snapshot-diagnostic.log').open('wb') as log:
+              result = subprocess.run([sys.executable, 'validation/previous_snapshot.py', '_baseline/source', 'validation/ui-diagnostic.json'], stdout=log, stderr=subprocess.STDOUT)
+          Path('validation/snapshot-diagnostic-result.json').write_text(json.dumps({'diagnostic_only': True, 'returncode': result.returncode}) + chr(10), encoding='utf-8')
       - name: Compare all twelve Qt view states with original source
         env:
           QT_QPA_PLATFORM: offscreen
         shell: pwsh
         run: |
-          python tools/capture_ui_snapshot.py _baseline/source validation/ui-before.json
+          python tools/capture_ui_snapshot.py _baseline/source validation/ui-before.json *> validation/ui-before.log
           if ($LASTEXITCODE -ne 0) { throw 'Baseline UI capture failed' }
-          python tools/capture_ui_snapshot.py source validation/ui-after.json
+          python tools/capture_ui_snapshot.py source validation/ui-after.json *> validation/ui-after.log
           if ($LASTEXITCODE -ne 0) { throw 'Modular UI capture failed' }
           python -c "import json,pathlib; p=pathlib.Path('validation'); assert json.loads((p/'ui-before.json').read_text(encoding='utf-8')) == json.loads((p/'ui-after.json').read_text(encoding='utf-8')), 'UI state changed'"
           if ($LASTEXITCODE -ne 0) { throw 'UI comparison failed' }
       - name: Compare fixed business data and document contents with original source
         shell: pwsh
         run: |
-          python tools/capture_behavior_snapshot.py _baseline/source validation/behavior-before.json
+          python tools/capture_behavior_snapshot.py _baseline/source validation/behavior-before.json *> validation/behavior-before.log
           if ($LASTEXITCODE -ne 0) { throw 'Baseline business capture failed' }
-          python tools/capture_behavior_snapshot.py source validation/behavior-after.json
+          python tools/capture_behavior_snapshot.py source validation/behavior-after.json *> validation/behavior-after.log
           if ($LASTEXITCODE -ne 0) { throw 'Modular business capture failed' }
           python -c "import json,pathlib; p=pathlib.Path('validation'); assert json.loads((p/'behavior-before.json').read_text(encoding='utf-8')) == json.loads((p/'behavior-after.json').read_text(encoding='utf-8')), 'Business outputs changed'"
           if ($LASTEXITCODE -ne 0) { throw 'Business comparison failed' }
