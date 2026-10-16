@@ -1,77 +1,17 @@
-name: Package v1.0.13 full backup
+# DEACTIVATED 2026-10-16: historical workflow retained in Git history.
+# Reason: This old workflow rebuilds current main under an obsolete v1.0.13 filename and replaces historic release archives.
+# Do not revive without a new version/EXE identity gate and explicit approval.
+name: Legacy v1.0.13 package (disabled)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - '.github/workflows/package-v1013-full.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  package:
-    runs-on: windows-latest
-    timeout-minutes: 25
+  disabled:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install build dependencies
-        run: python -m pip install PyInstaller PySide6==6.9.2 lxml pywin32 openpyxl python-docx
-
-      - name: Build EXE from validated source
-        shell: pwsh
-        working-directory: source
-        run: |
-          python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
-          if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
-
-      - name: Assemble full backup package
-        shell: pwsh
-        run: |
-          Remove-Item PACKAGE -Recurse -Force -ErrorAction SilentlyContinue
-          Remove-Item TDE_CONTROL_CENTER_v1.0.13_FULL.zip -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path PACKAGE | Out-Null
-          Copy-Item 'source' 'PACKAGE\source' -Recurse -Force
-          Remove-Item 'PACKAGE\source\build' -Recurse -Force -ErrorAction SilentlyContinue
-          Remove-Item 'PACKAGE\source\dist' -Recurse -Force -ErrorAction SilentlyContinue
-          Get-ChildItem 'PACKAGE\source' -Recurse -Directory -Filter '__pycache__' | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-          Get-ChildItem 'PACKAGE\source' -Recurse -File -Include '*.pyc','*.pyo' | Remove-Item -Force -ErrorAction SilentlyContinue
-          Copy-Item 'source\dist\TDE_CONTROL_CENTER_v1.0.exe' 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe'
-          $hash=(Get-FileHash 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe' -Algorithm SHA256).Hash
-          "$hash  TDE_CONTROL_CENTER_v1.0.13.exe" | Set-Content -Encoding ascii 'PACKAGE\TDE_CONTROL_CENTER_v1.0.13.sha256.txt'
-          Compress-Archive -Path 'PACKAGE\*' -DestinationPath 'TDE_CONTROL_CENTER_v1.0.13_FULL.zip' -CompressionLevel Optimal
-
-      - name: Smoke test packaged EXE
-        shell: pwsh
-        run: |
-          $p=Start-Process -FilePath '.\PACKAGE\TDE_CONTROL_CENTER_v1.0.13.exe' -PassThru
-          Start-Sleep -Seconds 8
-          if ($p.HasExited) { throw "EXE exited with code $($p.ExitCode)" }
-          Stop-Process -Id $p.Id -Force
-
-      - name: Upload full backup to current Release
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload v1.0.13 TDE_CONTROL_CENTER_v1.0.13_FULL.zip --clobber --repo $env:GITHUB_REPOSITORY
-          if ($LASTEXITCODE -ne 0) { throw 'Release asset upload failed' }
-
-      - name: Print temporary signed download URL
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          $assetId = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/v1.0.13" --jq '.assets[] | select(.name=="TDE_CONTROL_CENTER_v1.0.13_FULL.zip") | .id'
-          if (-not $assetId) { throw 'Release asset id not found' }
-          $apiUrl="https://api.github.com/repos/$env:GITHUB_REPOSITORY/releases/assets/$assetId"
-          curl.exe -sS -D redirect_headers.txt -o NUL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" $apiUrl
-          $location=(Get-Content redirect_headers.txt | Where-Object { $_ -match '^location:' } | Select-Object -Last 1)
-          if (-not $location) { throw 'Signed redirect URL not returned' }
-          $signed=$location.Substring(9).Trim()
-          Write-Host "SIGNED_URL=$signed"
+      - run: echo "Disabled legacy workflow; consult docs/VERSION_REGISTRY_EL.md"
