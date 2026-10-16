@@ -49,3 +49,9 @@
 - [PRODUCTION_STATUS.md](../PRODUCTION_STATUS.md)
 - [Μητρώο CONTROL CENTER στο Google Drive](https://docs.google.com/document/d/1QeYfHiBOztYqBJHjRQMHotDKOxn0TnkDiEMs1MZZkJM/edit)
 - [Modular phase 1 (εργασία, όχι έκδοση)](https://github.com/danilidish-coder/TDE-Control-Center/blob/refactor/modular-phase1/docs/MODULAR_PHASE1.md)
+
+## Έλεγχος παρωχημένων GitHub Actions — 16/10/2026
+
+Τα παλιά workflows `cleanup-releases.yml`, `publish-release.yml`, `prepare-current-delivery.yml` και `package-v1013-full.yml` **απενεργοποιήθηκαν στο main** (manual-only με job `if: false`). Το παλιό cleanup μπορούσε να διαγράψει releases, tags, branches και artifacts, ενώ τα άλλα χρησιμοποιούσαν παλιές σταθερές εκδόσεις ή `--clobber` σε υπάρχοντα release assets. Δεν εκτελέστηκε cleanup ή publication. Τα παλιά script σώζονται στο ιστορικό Git. Όταν ζητηθεί νέα δημοσίευση, χρειάζεται **καινούργιο ασφαλές workflow** με ρητό source SHA, πλήρες EXE digest, μη αντικατάσταση παλιάς έκδοσης, δοκιμές και έγκριση. Άλλα ιστορικά branches ενδέχεται να κρατούν παλιά workflows· δεν γίνονται pushes σε αυτά χωρίς ανεξάρτητο έλεγχο.
+
+**Σημείωση:** οι αλλαγές τεκμηρίωσης και workflows στο main δεν μεταβάλλουν κανένα αρχείο στο `source/`. Το `a0076c9...` παραμένει το δηλωμένο τελικό source commit της v1.0.14, ενώ το HEAD του main μπορεί πλέον να είναι νεότερο επειδή έγιναν ασφαλιστικές ενημερώσεις αρχείων συντήρησης.
