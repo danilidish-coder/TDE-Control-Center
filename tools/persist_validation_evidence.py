@@ -33,7 +33,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='tde-evidence-index-') as scratch:
         environment = dict(os.environ, GIT_INDEX_FILE=str(Path(scratch) / 'index'))
         git('read-tree', '--empty', environment=environment)
-        paths = sorted(str(p) for p in validation.rglob('*') if p.is_file() and p.suffix in ('.json', '.xml', '.log'))
+        paths = sorted(str(p) for p in validation.rglob('*') if p.is_file() and p.suffix in ('.json', '.xml', '.log', '.png'))
         git('add', '-f', '--', *paths, environment=environment)
         tree = git('write-tree', environment=environment)
         commit = git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'commit-tree', tree, *parent, '-m', f"Phase 1 validation for {metadata['source_commit']}", environment=environment)

@@ -51,6 +51,17 @@ def exercise(executable, output):
             if len(controls) != 1:
                 raise AssertionError(f'Expected one visible button {text!r}, got {len(controls)}')
             controls[0].click_input()
+        def dialog_window(title):
+            # Qt owned dialogs may be nested in the UIA tree rather than desktop
+            # children. Resolve the actual HWND first, then wrap that exact window.
+            native = Desktop(backend='win32').window(title=title, process=window.process_id()).wrapper_object()
+            return Desktop(backend='uia').window(handle=native.handle).wrapper_object()
+        def save_diagnostics():
+            native = [{'title': item.window_text(), 'handle': item.handle, 'pid': item.process_id(), 'class': item.class_name()}
+                      for item in Desktop(backend='win32').windows() if item.process_id() == window.process_id()]
+            controls = [{'title': item.window_text(), 'role': item.element_info.control_type, 'visible': item.is_visible(), 'rectangle': str(item.rectangle())}
+                        for item in window.descendants()]
+            (output / 'ui-diagnostics.json').write_text(json.dumps({'native_windows': native, 'uia_controls': controls}, ensure_ascii=False, indent=2) + chr(10), encoding='utf-8')
         try:
             environment = dict(os.environ)
             environment.pop('QT_QPA_PLATFORM', None)
@@ -68,7 +79,7 @@ def exercise(executable, output):
             report['steps'].append('native window and fresh SQLite initialized')
             window.capture_as_image().save(str(output / 'startup.png'))
             button(window, 'ΕΝΑΡΞΗ ΒΑΡΔΙΑΣ')
-            dialog = wait_for(lambda: Desktop(backend='uia').window(title='Έναρξη Βάρδιας').wrapper_object())
+            dialog = wait_for(lambda: dialog_window('Έναρξη Βάρδιας'))
             edits = [control for control in dialog.descendants(control_type='Edit') if control.is_visible()]
             if len(edits) != 4: raise AssertionError(f'Expected four shift fields, got {len(edits)}')
             for control, text in zip(edits, ['TEST-RANK', '999999', 'PHASE1', 'VALIDATION']):
@@ -80,7 +91,7 @@ def exercise(executable, output):
                 button(window, label)
             report['steps'].append('all six navigation buttons exercised')
             button(window, 'ΚΛΕΙΣΙΜΟ ΒΑΡΔΙΑΣ')
-            confirmation = wait_for(lambda: Desktop(backend='uia').window(title='Κλείσιμο βάρδιας').wrapper_object())
+            confirmation = wait_for(lambda: dialog_window('Κλείσιμο βάρδιας'))
             yes = [b for b in confirmation.descendants(control_type='Button') if b.window_text().replace('&', '').lower() in ('yes', 'ναι')]
             if len(yes) != 1: raise AssertionError('Missing close-shift confirmation button')
             yes[0].click_input()
@@ -98,7 +109,9 @@ def exercise(executable, output):
         except Exception as exc:
             report['error'] = f'{type(exc).__name__}: {exc}'
             if window is not None:
-                try: window.capture_as_image().save(str(output / 'failure.png'))
+                try:
+                    save_diagnostics()
+                    window.capture_as_image().save(str(output / 'failure.png'))
                 except Exception: pass
             raise
         finally:
