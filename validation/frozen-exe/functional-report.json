@@ -1,8 +1,0 @@
-{
-  "status": "failed",
-  "exe_sha256": "a66261b5a1bf1e6d545fc2a56bde934eee4a494ff9a2005afb6f50e88087ca34",
-  "steps": [
-    "native window and fresh SQLite initialized"
-  ],
-  "error": "TimeoutError: Readiness condition failed: {'title': 'Έναρξη Βάρδιας', 'top_level_only': True, 'backend': 'uia'}"
-}
