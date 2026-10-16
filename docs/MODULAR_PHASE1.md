@@ -46,7 +46,7 @@ New architecture tests check compatibility aliases, unchanged business/document 
 
 `tools/compare_regressions.py` compares original and candidate JUnit outcomes. It rejects missing tests, changed historical outcomes, and any non-passing new test. It does not mark historical failures as passes or xfails. Run pytest from `source/`, as in the baseline; some historical tests depend on that working directory.
 
-A separate isolated comparison captures the six existing pages in both themes, with fixed time and temporary SQLite data. It compares widget classes, names, visibility, enabled/checked states, text, choices, table headings, tabs and geometry. This is a structural Qt check, not a native Windows screenshot certification.
+A separate isolated comparison captures the six existing pages in both themes, with fixed time and temporary SQLite data. It compares widget classes, names, visibility, enabled/checked states, text, choices, table headings, tabs and geometry. This is a structural Qt check, not a native Windows screenshot certification. `tools/capture_behavior_snapshot.py` additionally runs fixed imposition, payment, refusal and shift-report scenarios against both source trees: all 12 SQLite tables, the activity summary, XML content of 5 generated Word documents and the populated cells/styles/merged ranges of the daily Excel workbook must match. A Qt workflow test also fills the actual shift dialog, records a fine, closes the shift, checks generated reports and restarts against the same temporary database.
 
 ## Windows executable
 

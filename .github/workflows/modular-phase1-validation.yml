@@ -61,6 +61,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Modular UI capture failed' }
           python -c "import json,pathlib; p=pathlib.Path('validation'); assert json.loads((p/'ui-before.json').read_text(encoding='utf-8')) == json.loads((p/'ui-after.json').read_text(encoding='utf-8')), 'UI state changed'"
           if ($LASTEXITCODE -ne 0) { throw 'UI comparison failed' }
+      - name: Compare fixed business data and document contents with original source
+        shell: pwsh
+        run: |
+          python tools/capture_behavior_snapshot.py _baseline/source validation/behavior-before.json
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline business capture failed' }
+          python tools/capture_behavior_snapshot.py source validation/behavior-after.json
+          if ($LASTEXITCODE -ne 0) { throw 'Modular business capture failed' }
+          python -c "import json,pathlib; p=pathlib.Path('validation'); assert json.loads((p/'behavior-before.json').read_text(encoding='utf-8')) == json.loads((p/'behavior-after.json').read_text(encoding='utf-8')), 'Business outputs changed'"
+          if ($LASTEXITCODE -ne 0) { throw 'Business comparison failed' }
       - name: Build test Windows EXE with existing specification
         working-directory: source
         shell: pwsh

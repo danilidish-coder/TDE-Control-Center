@@ -40,8 +40,11 @@ def exercise(executable, output):
         shutil.copy2(executable, target)
         database = target.parent / '.tde_runtime' / 'tde_control_center.sqlite3'
         def query(sql):
-            with sqlite3.connect(database, timeout=5) as connection:
+            connection = sqlite3.connect(database, timeout=5)
+            try:
                 return connection.execute(sql).fetchall()
+            finally:
+                connection.close()
         def button(parent, text):
             control = parent.child_window(title=text, control_type='Button').wrapper_object()
             control.click_input()
@@ -80,14 +83,13 @@ def exercise(executable, output):
             yes[0].click_input()
             wait_for(lambda: query('SELECT status FROM shifts') == [('CLOSED',)])
             workbook = wait_for(lambda: next((target.parent / '.tde_runtime' / 'archive').rglob('*.xlsx'), None))
-            book = load_workbook(workbook)
+            book = wait_for(lambda: load_workbook(workbook))
             if 'Ημερήσια Δραστηριότητα' not in book.sheetnames:
                 raise AssertionError('Daily activity workbook missing expected worksheet')
             book.close()
             if query('PRAGMA integrity_check') != [('ok',)] or query('PRAGMA foreign_key_check'):
                 raise AssertionError('SQLite integrity failure')
-            if query('SELECT COUNT(*) FROM pending_jobs WHERE resolved_at IS NULL') != [(0,)]:
-                raise AssertionError('Archive jobs remain pending')
+            wait_for(lambda: query('SELECT COUNT(*) FROM pending_jobs WHERE resolved_at IS NULL') == [(0,)])
             report['steps'].append('shift closed, daily XLSX generated, SQLite integrity and pending jobs verified')
             report['status'] = 'passed'
         except Exception as exc:

@@ -11,6 +11,8 @@ import app.core.paths as paths
 runtime=tempfile.TemporaryDirectory()
 paths.runtime_root=lambda:pathlib.Path(runtime.name)
 import app.ui.main_window as mw
+import app.services.periodicals as periodicals
+periodicals.runtime_root = lambda: pathlib.Path(runtime.name)
 class FixedDatetime(datetime):
  @classmethod
  def now(cls,tz=None):return cls(2026,10,16,12,30,0)

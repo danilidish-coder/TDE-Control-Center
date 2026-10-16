@@ -1,6 +1,6 @@
 {
   "baseline_tests": 134,
-  "current_tests": 188,
+  "current_tests": 189,
   "historical_failures": [
     "test_receipts_final::test_pdf_preview_helper_is_used_for_final_reports",
     "test_release_branding::test_release_branding_and_build_files",
@@ -17,7 +17,7 @@
   ],
   "missing": [],
   "changed_outcomes": {},
-  "new_tests_passed": 54,
+  "new_tests_passed": 55,
   "new_tests_not_passed": {},
   "compatible": true,
   "stages": [
@@ -35,6 +35,13 @@
     "views": 12,
     "equal": true,
     "sha256": "1f45b1d529ae406768b07305681a81fe02beba9e76510c75e2fd107de57ad6db"
+  },
+  "business_comparison": {
+    "equal": true,
+    "tables": 12,
+    "docx_documents": 5,
+    "workbooks": 1,
+    "sha256": "e490ccd1e9289f6e50441a8bab46a3b5546e1c39f361eb61e2d571936cab21ae"
   },
   "windows_status": "Pending dedicated Windows workflow; local host is Linux"
 }
