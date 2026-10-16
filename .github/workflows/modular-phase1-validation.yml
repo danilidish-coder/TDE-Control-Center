@@ -9,7 +9,7 @@ env:
   PYTHONUTF8: "1"
 concurrency:
   group: control-center-modular-phase1-validation
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   windows-functional:
     permissions:
@@ -27,6 +27,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Record current Windows run before installation
+        env:
+          VALIDATION_JOB_STATUS: running
+        run: python tools/persist_validation_evidence.py
       - name: Install pinned application dependencies and external UI test tools
         run: python -m pip install -r source/requirements.txt python-docx pytest pywinauto psutil
       - name: Run original Windows baseline without masking failures
