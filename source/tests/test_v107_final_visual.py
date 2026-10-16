@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -9,7 +10,7 @@ from app.ui.main_window import _metallic_emblem_image
 
 def test_final_header_wordart_contract():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
     theme = (root / "app/ui/theme.py").read_text(encoding="utf-8")
     assert "class FloatingHeaderLabel" in main
     assert "QLinearGradient" in main
@@ -43,6 +44,6 @@ def test_official_emblem_is_recoloured_without_white_backing():
 
 def test_refusal_layout_remains_locked():
     root = Path(__file__).resolve().parents[1]
-    text = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
+    text = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
     assert text.count("ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ") == 1
     assert text.count("ΑΡΧΕΙΟ ΒΑΣ") == 1

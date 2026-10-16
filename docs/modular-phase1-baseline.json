@@ -1,0 +1,62 @@
+[
+  {
+    "class": "tests.test_receipts_final",
+    "test": "test_pdf_preview_helper_is_used_for_final_reports",
+    "message": "assert 'open_document_preview' in \"from __future__ import annotations\\nimport os\\nfrom datetime import datetime\\nfrom PySide6.QtCore import Qt\\nfrom PyS...ουργήθηκε:\\\\n{path}')\\n        except Exception as exc: QMessageBox.warning(self,'Προεπισκόπηση Προστίμων',str(exc))\\n\""
+  },
+  {
+    "class": "tests.test_release_branding",
+    "test": "test_release_branding_and_build_files",
+    "message": "assert 'ΕΚΔΟΣΗ 1.0.12' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  },
+  {
+    "class": "tests.test_v06_ui",
+    "test": "test_v06_ui_interaction_and_stress",
+    "message": "AssertionError: assert 'ΧΡΗΣΗ ΣΤΑ ΠΡΟΣΤΙΜΑ' not in {'ΑΝΑΖΗΤΗΣΗ', 'ΧΡΗΣΗ ΣΤΑ ΠΡΟΣΤΙΜΑ', 'ΧΡΗΣΗ ΣΤΙΣ ΑΡΝΗΣΕΙΣ'}"
+  },
+  {
+    "class": "tests.test_v103_daily_activity_format",
+    "test": "test_daily_activity_signature_and_collection_total_format",
+    "message": "AssertionError: assert 'ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ - ΑΓΜΣ 123456' == 'ΔΑΝΙΗΛΙΔΗΣ ΗΡΑΚΛΗΣ'\n  \n  - ΔΑΝΙΗΛΙΔΗΣ ΗΡΑΚΛΗΣ\n  + ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ - ΑΓΜΣ 123456"
+  },
+  {
+    "class": "tests.test_v104_report_ui",
+    "test": "test_report_actions_are_clearly_separated_everywhere",
+    "message": "assert 'ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΠΡΟΣΤΙΜΑ' in \"from __future__ import annotations\\nimport os\\nfrom datetime import datetime\\nfrom PySide6.QtCore import Qt\\nfrom PyS...ουργήθηκε:\\\\n{path}')\\n        except Exception as exc: QMessageBox.warning(self,'Προεπισκόπηση Προστίμων',str(exc))\\n\""
+  },
+  {
+    "class": "tests.test_v106_header_layout",
+    "test": "test_v106_header_text_and_version_placement",
+    "message": "assert 'self.version_label = QLabel(\"ΕΚΔΟΣΗ 1.0.12\")' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  },
+  {
+    "class": "tests.test_v106_header_layout",
+    "test": "test_refusal_bas_buttons_are_beside_other_actions_not_bottom",
+    "message": "assert 0 == 1\n +  where 0 = <built-in method count of str object at 0x216dc780>('ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ')\n +    where <built-in method count of str object at 0x216dc780> = \"from __future__ import annotations\\nimport os\\nfrom app.services.pdf_preview import open_document_preview\\nfrom datet...ormation(self,'Προεπισκόπηση ΒΑΣ',str(p))\\n        except Exception as exc: QMessageBox.warning(self,'ΒΑΣ',str(exc))\\n\".count"
+  },
+  {
+    "class": "tests.test_v107_final_visual",
+    "test": "test_final_header_wordart_contract",
+    "message": "assert 'ΕΚΔΟΣΗ 1.0.12' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  },
+  {
+    "class": "tests.test_v107_final_visual",
+    "test": "test_refusal_layout_remains_locked",
+    "message": "assert 0 == 1\n +  where 0 = <built-in method count of str object at 0x20afca00>('ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ')\n +    where <built-in method count of str object at 0x20afca00> = \"from __future__ import annotations\\nimport os\\nfrom app.services.pdf_preview import open_document_preview\\nfrom datet...ormation(self,'Προεπισκόπηση ΒΑΣ',str(p))\\n        except Exception as exc: QMessageBox.warning(self,'ΒΑΣ',str(exc))\\n\".count"
+  },
+  {
+    "class": "tests.test_v110_reference_skin",
+    "test": "test_v110_reference_skin_assets_and_shell_without_home_dashboard",
+    "message": "assert 'ΕΚΔΟΣΗ 1.0.13' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  },
+  {
+    "class": "tests.test_v111_greece_watermark",
+    "test": "test_v111_greece_watermark_is_replaced_only_visually",
+    "message": "assert 'ΕΚΔΟΣΗ 1.0.12' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  },
+  {
+    "class": "tests.test_v112_accurate_greece_watermark",
+    "test": "test_v112_accurate_greece_watermark_asset",
+    "message": "assert 'ΕΚΔΟΣΗ 1.0.12' in 'from __future__ import annotations\\n\\nfrom datetime import datetime\\n\\nfrom PySide6.QtCore import QTimer, Qt, QSize\\n...tyleSheet(stylesheet(t))\\n        self.theme_btn.setText(\"☀ ΦΩΤΕΙΝΟ\" if self.theme_name == \"dark\" else \"☾ ΣΚΟΤΕΙΝΟ\")\\n'"
+  }
+]

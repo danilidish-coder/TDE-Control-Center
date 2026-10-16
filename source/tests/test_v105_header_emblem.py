@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -15,7 +16,7 @@ def test_police_emblem_resource_is_valid_image():
 
 def test_main_header_uses_existing_police_emblem():
     root = Path(__file__).resolve().parents[1]
-    text = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    text = read_application_source(root)
     assert 'resource_path("police_emblem_user.png")' in text
     assert 'setObjectName("PoliceEmblem")' in text
     assert "Qt.KeepAspectRatio" in text

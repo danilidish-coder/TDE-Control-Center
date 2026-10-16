@@ -123,7 +123,7 @@ def test_cutoff_1000_rule_remains_unchanged():
 
 def test_ui_contains_no_old_profile_question():
     root=Path(__file__).resolve().parents[1]
-    ui=(root/"app/ui/periodicals_page.py").read_text(encoding="utf-8")
+    ui=(root/"app/features/periodicals/page.py").read_text(encoding="utf-8")
     assert "Πώς οργανώνεται το αρχείο;" not in ui
     assert "ΜΗΝΙΑΙΟ BAT" not in ui
     assert "ΗΜΕΡΗΣΙΟ BAT" not in ui

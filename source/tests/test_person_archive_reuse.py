@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 import os
 from pathlib import Path
 
@@ -49,9 +50,9 @@ def test_person_archive_buttons_emit_selected_profile(tmp_path: Path):
 
 def test_main_window_wires_person_archive_to_fines_and_refusals():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
-    fines = (root / "app/ui/fines_page.py").read_text(encoding="utf-8")
-    refusals = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
+    fines = (root / "app/features/fines/page.py").read_text(encoding="utf-8")
+    refusals = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
 
     assert 'self.pages["people"].useInFines.connect' in main
     assert 'self.pages["people"].useInRefusals.connect' in main

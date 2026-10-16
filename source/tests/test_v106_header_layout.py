@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -7,7 +8,7 @@ from PySide6.QtGui import QImage
 
 def test_v106_header_text_and_version_placement():
     root = Path(__file__).resolve().parents[1]
-    text = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    text = read_application_source(root)
     assert "ΔΙΕΥΘΥΝΣΗ ΑΣΤΥΝΟΜΙΑΣ ΦΛΩΡΙΝΑΣ" in text
     assert "ΤΜΗΜΑ ΔΙΑΒΑΤΗΡΙΑΚΟΥ ΕΛΕΓΧΟΥ ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ" in text
     assert "ΚΕΝΤΡΟ ΕΛΕΓΧΟΥ ΑΞΙΩΜΑΤΙΚΟΥ ΥΠΗΡΕΣΙΑΣ" in text
@@ -26,7 +27,7 @@ def test_official_emblem_has_transparent_background_and_is_packaged():
     assert not image.isNull()
     assert image.hasAlphaChannel()
     assert image.pixelColor(0, 0).alpha() == 0
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
     spec = (root / "TDE_CONTROL_CENTER_v1.0.spec").read_text(encoding="utf-8")
     assert 'resource_path("police_emblem_user.png")' in main
     assert "police_emblem_user.png" in spec
@@ -35,7 +36,7 @@ def test_official_emblem_has_transparent_background_and_is_packaged():
 
 def test_refusal_bas_buttons_are_beside_other_actions_not_bottom():
     root = Path(__file__).resolve().parents[1]
-    text = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
+    text = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
     assert text.count("ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ") == 1
     assert text.count("ΑΡΧΕΙΟ ΒΑΣ") == 1
     tools_start = text.index("tools=QHBoxLayout()")

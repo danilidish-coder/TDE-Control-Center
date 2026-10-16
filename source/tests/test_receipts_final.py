@@ -74,7 +74,7 @@ def test_receipts_page_shows_open_closed_lists_and_handover_actions(tmp_path):
     assert "ΠΑΡΑΛΑΒΩΝ" in labels
     assert "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ" in page.preview_btn.text()
     assert "ΚΛΕΙΣΙΜΟ - ΠΑΡΑΔΟΣΗ" in page.close_btn.text()
-    source = (Path(__file__).resolve().parents[1] / "app/ui/receipts_page.py").read_text(encoding="utf-8")
+    source = (Path(__file__).resolve().parents[1] / "app/features/receipts/page.py").read_text(encoding="utf-8")
     assert "QInputDialog.getText" in source
     assert "Συμπλήρωσε τον Παραλαβόντα" in source
     assert page.table.rowCount() == 1
@@ -88,13 +88,13 @@ def test_receipts_page_shows_open_closed_lists_and_handover_actions(tmp_path):
 def test_pdf_preview_helper_is_used_for_final_reports():
     root = Path(__file__).resolve().parents[1]
     targets = [
-        root / "app/ui/fines_page.py",
-        root / "app/ui/refusals_page.py",
-        root / "app/ui/fines_archive.py",
-        root / "app/ui/refusals_archive.py",
-        root / "app/ui/shift_reports.py",
-        root / "app/services/daily_activity.py",
-        root / "app/services/refusals.py",
+        root / "app/features/fines/page.py",
+        root / "app/features/refusals/page.py",
+        root / "app/features/fines/archive.py",
+        root / "app/features/refusals/archive.py",
+        root / "app/features/reports/page.py",
+        root / "app/features/daily_activity/service.py",
+        root / "app/features/refusals/service.py",
     ]
     for path in targets:
         text = path.read_text(encoding="utf-8")

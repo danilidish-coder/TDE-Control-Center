@@ -3,10 +3,10 @@ from pathlib import Path
 
 def test_report_actions_are_clearly_separated_everywhere():
     root = Path(__file__).resolve().parents[1]
-    fines = (root / "app/ui/fines_page.py").read_text(encoding="utf-8")
-    refusals = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
-    daily = (root / "app/ui/daily_activity.py").read_text(encoding="utf-8")
-    reports = (root / "app/ui/shift_reports.py").read_text(encoding="utf-8")
+    fines = (root / "app/features/fines/page.py").read_text(encoding="utf-8")
+    refusals = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
+    daily = (root / "app/features/daily_activity/page.py").read_text(encoding="utf-8")
+    reports = (root / "app/features/reports/page.py").read_text(encoding="utf-8")
 
     assert "ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΠΡΟΣΤΙΜΑ" in fines
     assert "ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ ΠΡΟΣΤΙΜΩΝ" in fines
@@ -38,6 +38,6 @@ def test_combo_boxes_have_explicit_visible_arrow_assets():
 
 def test_historical_fine_report_uses_archive_output():
     root = Path(__file__).resolve().parents[1]
-    archive_ui = (root / "app/ui/fines_archive.py").read_text(encoding="utf-8")
+    archive_ui = (root / "app/features/fines/archive.py").read_text(encoding="utf-8")
     assert "generate_shift_report(int(shift_id), archive=True)" in archive_ui
     assert "ΑΝΟΙΓΜΑ ΑΝΑΦΟΡΑΣ ΤΗΣ ΒΑΡΔΙΑΣ" in archive_ui

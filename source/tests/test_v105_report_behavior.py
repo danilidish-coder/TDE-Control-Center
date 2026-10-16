@@ -39,8 +39,8 @@ def test_report_archive_locks_scope_by_module(tmp_path: Path):
 
 def test_refusal_archive_is_all_shifts_and_has_individual_and_shift_list_actions():
     root=Path(__file__).resolve().parents[1]
-    service=(root/"app/services/refusals.py").read_text(encoding="utf-8")
-    ui=(root/"app/ui/refusals_archive.py").read_text(encoding="utf-8")
+    service=(root/"app/features/refusals/service.py").read_text(encoding="utf-8")
+    ui=(root/"app/features/refusals/archive.py").read_text(encoding="utf-8")
     assert "JOIN shifts s ON s.id=r.shift_id" in service
     assert "WHERE 1=1" in service
     assert "ΑΝΟΙΓΜΑ ΕΠΙΛΕΓΜΕΝΗΣ ΑΡΝΗΣΗΣ" in ui
@@ -50,9 +50,9 @@ def test_refusal_archive_is_all_shifts_and_has_individual_and_shift_list_actions
 
 def test_current_report_buttons_use_current_or_last_shift():
     root=Path(__file__).resolve().parents[1]
-    fines=(root/"app/ui/fines_page.py").read_text(encoding="utf-8")
-    refusals=(root/"app/ui/refusals_page.py").read_text(encoding="utf-8")
-    daily=(root/"app/ui/daily_activity.py").read_text(encoding="utf-8")
+    fines=(root/"app/features/fines/page.py").read_text(encoding="utf-8")
+    refusals=(root/"app/features/refusals/page.py").read_text(encoding="utf-8")
+    daily=(root/"app/features/daily_activity/page.py").read_text(encoding="utf-8")
     assert "get_current_or_last_shift" in fines
     assert "get_current_or_last_shift" in refusals
     assert "get_current_or_last_shift" in daily

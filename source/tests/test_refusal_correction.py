@@ -124,9 +124,9 @@ def test_refusal_stale_edit_does_not_overwrite_other_station(tmp_path, monkeypat
 
 def test_refusal_ui_and_archives_expose_same_correction_actions():
     root = Path(__file__).resolve().parents[1]
-    page = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
-    archive = (root / "app/ui/refusals_archive.py").read_text(encoding="utf-8")
-    fines_archive = (root / "app/ui/fines_archive.py").read_text(encoding="utf-8")
+    page = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
+    archive = (root / "app/features/refusals/archive.py").read_text(encoding="utf-8")
+    fines_archive = (root / "app/features/fines/archive.py").read_text(encoding="utf-8")
     assert "ΑΡΝΗΣΕΙΣ ΒΑΡΔΙΑΣ — ΚΑΤΑΧΩΡΙΣΕΙΣ" in page
     assert "ΔΙΟΡΘΩΣΗ ΕΠΙΛΕΓΜΕΝΗΣ" in page and "ΔΙΑΓΡΑΦΗ ΕΠΙΛΕΓΜΕΝΗΣ" in page
     assert "ΔΙΟΡΘΩΣΗ ΕΠΙΛΕΓΜΕΝΗΣ" in archive and "ΔΙΑΓΡΑΦΗ ΕΠΙΛΕΓΜΕΝΗΣ" in archive

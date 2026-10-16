@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -8,7 +9,7 @@ from app.ui.main_window import MainWindow
 
 def test_v108_user_emblem_and_no_recolouring_in_header():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
     spec = (root / "TDE_CONTROL_CENTER_v1.0.spec").read_text(encoding="utf-8")
     asset = root / "resources/police_emblem_user.png"
     assert asset.exists()
@@ -21,7 +22,7 @@ def test_v108_user_emblem_and_no_recolouring_in_header():
 
 def test_v108_left_navigation_is_exclusive_and_green():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
     theme = (root / "app/ui/theme.py").read_text(encoding="utf-8")
     assert "self.nav_buttons = {}" in main
     assert 'b.setProperty("navButton", True)' in main

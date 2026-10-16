@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 import os
 from datetime import datetime
 from pathlib import Path
@@ -34,13 +35,14 @@ def test_thematic_report_archive_page_remains_available(tmp_path: Path):
 
 def test_general_reports_entry_is_removed_but_thematic_buttons_keep_filtered_route():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
-    fines = (root / "app/ui/fines_page.py").read_text(encoding="utf-8")
-    refusals = (root / "app/ui/refusals_page.py").read_text(encoding="utf-8")
-    daily = (root / "app/ui/daily_activity.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
+    fines = (root / "app/features/fines/page.py").read_text(encoding="utf-8")
+    refusals = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
+    daily = (root / "app/features/daily_activity/page.py").read_text(encoding="utf-8")
 
     assert '("ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ", "reports")' not in main
-    assert 'self.pages["reports"] = ShiftReportsPage' in main
-    assert "mw.show_reports('FINES')" in fines
-    assert "mw.show_reports('VAS')" in refusals
-    assert "mw.show_reports('DAILY')" in daily
+    from app.registry import DEFAULT_MODULES
+    assert next(m for m in DEFAULT_MODULES if m.key == "reports").title is None
+    assert "self.actions.show_reports('FINES')" in fines
+    assert "self.actions.show_reports('VAS')" in refusals
+    assert "self.actions.show_reports('DAILY')" in daily

@@ -1,15 +1,19 @@
+from architecture_support import read_application_source
 from pathlib import Path
 
 
 def test_sidebar_labels_and_icons_are_applied():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
-    assert '"fines":"skin_nav_fines.svg"' in main
-    assert '"daily":"skin_nav_daily.svg"' in main
-    assert '"reports":"skin_nav_reports.svg"' not in main
-    assert '"receipts":"skin_nav_receipts.svg"' in main
-    assert '("ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ", "receipts")' in main
+    main = read_application_source(root)
+    from app.registry import DEFAULT_MODULES, navigation_modules
+    modules = {m.key: m for m in DEFAULT_MODULES}
+    assert modules["fines"].icon == "skin_nav_fines.svg"
+    assert modules["daily"].icon == "skin_nav_daily.svg"
+    assert modules["receipts"].icon == "skin_nav_receipts.svg"
+    assert modules["receipts"].title == "ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ"
+    assert "reports" not in [m.key for m in navigation_modules(DEFAULT_MODULES)]
     assert 'QSize(40,40) if page == "fines" else QSize(35,35)' in main
+
 
 
 def test_sidebar_svg_assets_are_packaged():

@@ -1,3 +1,4 @@
+from architecture_support import read_application_source
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -8,7 +9,7 @@ from app.ui.main_window import MainWindow
 
 def test_home_dashboard_is_completely_removed_from_source():
     root = Path(__file__).resolve().parents[1]
-    main = (root / "app/ui/main_window.py").read_text(encoding="utf-8")
+    main = read_application_source(root)
     assert '("ΑΡΧΙΚΗ ΣΕΛΙΔΑ", "home")' not in main
     assert 'self.pages["home"]' not in main
     assert "def _home_page(self):" not in main
