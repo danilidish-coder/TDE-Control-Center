@@ -31,7 +31,14 @@ class SharedWriteLock:
                     "host": socket.gethostname(),
                     "created": time.time(),
                 }
-                (self.lock_dir / "owner.json").write_text(json.dumps(meta), encoding="utf-8")
+                try:
+                    (self.lock_dir / "owner.json").write_text(json.dumps(meta), encoding="utf-8")
+                except OSError:
+                    # This directory was created by this acquisition, which has
+                    # not yet entered the protected write operation.
+                    (self.lock_dir / "owner.json").unlink(missing_ok=True)
+                    self.lock_dir.rmdir()
+                    raise
                 break
             except FileExistsError:
                 self._wait_for_lock(started)
@@ -55,21 +62,18 @@ class SharedWriteLock:
                 pass
 
     def _wait_for_lock(self, started: float) -> None:
-        self._clear_stale_lock()
         if time.monotonic() - started >= self.timeout:
-            raise TimeoutError("Η βάση χρησιμοποιείται από άλλο σταθμό. Δοκιμάστε ξανά.")
-        time.sleep(0.15)
-
-    def _clear_stale_lock(self) -> None:
-        try:
-            age = time.time() - self.lock_dir.stat().st_mtime
+            message = "Η βάση χρησιμοποιείται από άλλο σταθμό. Δοκιμάστε ξανά."
+            try:
+                age = time.time() - self.lock_dir.stat().st_mtime
+            except FileNotFoundError:
+                return
             if age > self.stale_after:
-                for p in self.lock_dir.iterdir():
-                    p.unlink(missing_ok=True)
-                self.lock_dir.rmdir()
-        except FileNotFoundError:
-            pass
-        except PermissionError:
-            # Another Windows/SMB client may be in the middle of releasing the
-            # lock. It is safer to leave it alone and retry than to force it.
-            pass
+                message += (
+                    " Το παλιό κλείδωμα δεν αφαιρέθηκε αυτόματα, διότι η ηλικία του "
+                    "δεν αποδεικνύει ότι ο ιδιοκτήτης έχει τερματίσει. Απαιτείται έλεγχος "
+                    "και επιβεβαίωση διαχειριστή ότι όλοι οι σταθμοί έχουν σταματήσει "
+                    "να γράφουν πριν από χειροκίνητη αποκατάσταση."
+                )
+            raise TimeoutError(message)
+        time.sleep(0.15)
