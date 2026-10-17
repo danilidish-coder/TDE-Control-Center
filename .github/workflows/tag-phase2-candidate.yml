@@ -1,0 +1,32 @@
+name: Preserve exact Phase 2 candidate source tag
+
+on:
+  push:
+    branches: [delivery/control-center-phase2-20261017]
+    paths: ['.github/workflows/tag-phase2-candidate.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  pin-candidate-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create source-only candidate tag if absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG=phase2-candidate-20261017
+          SOURCE=557558b5d25695ecf93c9e50be99f0c67afe7859
+          git cat-file -e "${SOURCE}^{commit}"
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "Tag exists: do not replace or move."
+            exit 1
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' tag -a "$TAG" "$SOURCE" -m "Phase 2 candidate source; frozen EXE sha256 f782edc38cb7881a0e6862bc00aec49e111135c572789c02970d3877c77b6f02; verified run 39015354501; download candidate EXE from Google Drive folder 1Zg8kyDURdrr1UeNjRkdVXjFfZfMhhuSj; NOT PRODUCTION"
+          git push origin "refs/tags/$TAG"
+          git ls-remote origin "refs/tags/$TAG"
