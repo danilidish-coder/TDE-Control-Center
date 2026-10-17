@@ -5,7 +5,9 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-REF = 'refs/heads/validation/control-center-modular-phase1'
+REF = os.environ.get('VALIDATION_EVIDENCE_REF', 'refs/heads/validation/control-center-modular-phase1')
+if REF not in ('refs/heads/validation/control-center-modular-phase1', 'refs/heads/validation/control-center-phase2'):
+    raise ValueError('Only isolated validation evidence refs are permitted')
 
 
 def git(*args, environment=None):
@@ -36,7 +38,7 @@ def main():
         paths = sorted(str(p) for p in validation.rglob('*') if p.is_file() and p.suffix in ('.json', '.xml', '.log', '.png'))
         git('add', '-f', '--', *paths, environment=environment)
         tree = git('write-tree', environment=environment)
-        commit = git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'commit-tree', tree, *parent, '-m', f"Phase 1 validation for {metadata['source_commit']}", environment=environment)
+        commit = git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'commit-tree', tree, *parent, '-m', f"Validation evidence for {metadata['source_commit']}", environment=environment)
         git('push', 'origin', f'{commit}:{REF}')
     print(f'Evidence saved to {REF} for {metadata["source_commit"]}')
 

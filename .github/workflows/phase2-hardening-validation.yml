@@ -1,0 +1,107 @@
+name: CONTROL CENTER Phase 2 hardening validation
+on:
+  push:
+    branches: [audit/phase2-hardening-20261017]
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: "1"
+  VALIDATION_EVIDENCE_REF: refs/heads/validation/control-center-phase2
+concurrency:
+  group: control-center-phase2-validation
+  cancel-in-progress: true
+jobs:
+  windows-functional:
+    permissions:
+      contents: write
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          ref: 9984de0b0f78c1c5c41133378f75d1b28c729258
+          path: _baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Record current Windows run before installation
+        env:
+          VALIDATION_JOB_STATUS: running
+        run: python tools/persist_validation_evidence.py
+      - name: Install pinned application dependencies and external UI test tools
+        run: python -m pip install -r source/requirements.txt python-docx pytest pywinauto psutil pillow
+      - name: Run Phase 1 Windows baseline without masking failures
+        working-directory: _baseline/source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force ../../validation | Out-Null
+          python -m pytest -q tests --junitxml=../../validation/baseline-windows.xml
+          if ($LASTEXITCODE -notin @(0, 1)) { throw 'Baseline did not complete' }
+          exit 0
+      - name: Run modular Windows regressions without masking failures
+        working-directory: source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          python -m pytest -q tests --junitxml=../validation/modular-windows.xml
+          if ($LASTEXITCODE -notin @(0, 1)) { throw 'Modular suite did not complete' }
+          exit 0
+      - name: Require all Phase 1 passes and exactly twelve documented test corrections
+        run: python tools/compare_phase2_regressions.py --baseline validation/baseline-windows.xml --current validation/modular-windows.xml --output validation/windows-comparison.json
+      - name: Compare all twelve Qt view states with Phase 1
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          python tools/capture_ui_snapshot.py _baseline/source validation/ui-before.json *> validation/ui-before.log
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline UI capture failed' }
+          python tools/capture_ui_snapshot.py source validation/ui-after.json *> validation/ui-after.log
+          if ($LASTEXITCODE -ne 0) { throw 'Modular UI capture failed' }
+          python -c "import json,pathlib; p=pathlib.Path('validation'); assert json.loads((p/'ui-before.json').read_text(encoding='utf-8')) == json.loads((p/'ui-after.json').read_text(encoding='utf-8')), 'UI state changed'"
+          if ($LASTEXITCODE -ne 0) { throw 'UI comparison failed' }
+      - name: Compare fixed business data and document contents with Phase 1
+        shell: pwsh
+        run: |
+          python tools/capture_behavior_snapshot.py _baseline/source validation/behavior-before.json *> validation/behavior-before.log
+          if ($LASTEXITCODE -ne 0) { throw 'Baseline business capture failed' }
+          python tools/capture_behavior_snapshot.py source validation/behavior-after.json *> validation/behavior-after.log
+          if ($LASTEXITCODE -ne 0) { throw 'Modular business capture failed' }
+          python tools/compare_phase2_behavior.py --baseline validation/behavior-before.json --current validation/behavior-after.json --output validation/behavior-comparison.json
+          if ($LASTEXITCODE -ne 0) { throw 'Business comparison failed' }
+      - name: Build test Windows EXE with existing specification
+        working-directory: source
+        shell: pwsh
+        run: |
+          python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec *> ../validation/build-windows.log
+          if ($LASTEXITCODE -ne 0) { throw 'Windows EXE build failed' }
+      - name: Record exact source and executable identity
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, json, subprocess
+          exe = Path('source/dist/TDE_CONTROL_CENTER_v1.0.exe')
+          data = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(), 'exe': exe.name, 'sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'production_release': False}
+          Path('validation/build-manifest.json').write_text(json.dumps(data, indent=2) + chr(10), encoding='utf-8')
+      - name: Exercise real frozen EXE through native UI
+        run: python tools/exercise_windows_exe.py source/dist/TDE_CONTROL_CENTER_v1.0.exe --output validation/frozen-exe *> validation/native-driver.log
+      - name: Upload test evidence and EXE only; never publish a release
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-center-phase2-${{ github.sha }}
+          path: |
+            validation/
+            source/dist/TDE_CONTROL_CENTER_v1.0.exe
+          retention-days: 14
+      - name: Save JSON and XML evidence to isolated validation branch
+        if: always()
+        env:
+          VALIDATION_JOB_STATUS: ${{ job.status }}
+        run: python tools/persist_validation_evidence.py

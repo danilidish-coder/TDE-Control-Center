@@ -2,6 +2,7 @@
 from __future__ import annotations
 import argparse
 from datetime import datetime
+from zipfile import ZipFile
 import hashlib
 import json
 import os
@@ -88,6 +89,37 @@ def exercise(executable, output):
             button(dialog, 'ΕΝΑΡΞΗ')
             wait_for(lambda: query("SELECT officer_name, status FROM shifts") == [('PHASE1 VALIDATION', 'OPEN')])
             report['steps'].append('shift created through native UI and verified in SQLite')
+            # Fill by the visible label/field geometry, without modifying the
+            # frozen program or writing synthetic rows behind its UI.
+            for label, value in [('ΕΠΩΝΥΜΟ', 'PHASE2-SYNTHETIC'), ('ΟΝΟΜΑ', 'TEST')]:
+                labels = [c for c in window.descendants(control_type='Text')
+                          if c.is_visible() and c.window_text() == label]
+                if len(labels) != 1:
+                    raise AssertionError(f'Expected one field label {label!r}, got {len(labels)}')
+                rectangle = labels[0].rectangle()
+                y = (rectangle.top + rectangle.bottom) // 2
+                candidates = [c for c in window.descendants(control_type='Edit')
+                              if c.is_visible() and c.is_enabled()
+                              and c.rectangle().left >= rectangle.right
+                              and c.rectangle().top <= y <= c.rectangle().bottom]
+                if not candidates:
+                    raise AssertionError(f'Missing editable field beside {label!r}')
+                min(candidates, key=lambda c: c.rectangle().left).set_edit_text(value)
+            button(window, 'ΚΑΤΑΧΩΡΙΣΗ')
+            confirmation = wait_for(lambda: dialog_window('Επιβεβαίωση'))
+            yes = [b for b in confirmation.descendants(control_type='Button')
+                   if b.window_text().replace('&', '').lower() in ('yes', 'ναι')]
+            if len(yes) != 1:
+                raise AssertionError('Missing fine-entry confirmation')
+            yes[0].click_input()
+            completed = wait_for(lambda: dialog_window('Ολοκληρώθηκε'))
+            buttons = [b for b in completed.descendants(control_type='Button')
+                       if b.is_visible() and b.window_text().replace('&', '').lower() in ('ok', 'εντάξει')]
+            if len(buttons) != 1:
+                raise AssertionError('Missing successful fine-entry acknowledgement')
+            buttons[0].click_input()
+            wait_for(lambda: query('SELECT COUNT(*) FROM fines') == [(1,)])
+            report['steps'].append('synthetic fine entered and confirmed through frozen native UI')
             for label in ['ΑΡΝΗΣΕΙΣ', 'ΗΜΕΡΗΣΙΑ ΔΡΑΣΤΗΡΙΟΤΗΤΑ', 'ΠΕΡΙΟΔΙΚΑ', 'ΑΡΧΕΙΟ - ΑΝΑΖΗΤΗΣΗ ΠΡΟΣΩΠΟΥ', 'ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ', 'ΠΡΟΣΤΙΜΑ']:
                 button(window, label)
             report['steps'].append('all six navigation buttons exercised')
@@ -101,7 +133,44 @@ def exercise(executable, output):
             book = wait_for(lambda: load_workbook(workbook))
             if 'Ημερήσια Δραστηριότητα' not in book.sheetnames:
                 raise AssertionError('Daily activity workbook missing expected worksheet')
+            start, end = query('SELECT started_at, ended_at FROM shifts')[0]
+            for timestamp in (start, end):
+                if datetime.fromisoformat(timestamp).strftime('%d/%m/%Y %H:%M') not in book['Ημερήσια Δραστηριότητα']['A7'].value:
+                    raise AssertionError('Frozen Excel report did not use recorded shift times')
             book.close()
+            documents = list((target.parent / '.tde_runtime' / 'archive').rglob('*.docx'))
+            if not documents:
+                raise AssertionError('Frozen executable did not produce the fines DOCX')
+            from lxml import etree
+            found_fine = False
+            for document in documents:
+                with ZipFile(document) as package:
+                    if package.testzip() is not None:
+                        raise AssertionError('Invalid frozen DOCX ZIP')
+                    root = etree.fromstring(package.read('word/document.xml'))
+                    text = ''.join(root.xpath('//*[local-name()="t"]/text()'))
+                    if 'PHASE2-SYNTHETIC' in text:
+                        found_fine = True
+                        for timestamp in (start, end):
+                            if datetime.fromisoformat(timestamp).strftime('%H:%M') not in text:
+                                raise AssertionError('Frozen Word report did not use recorded shift times')
+                        if 'ΕΝΕΡΓΗ ΒΑΡΔΙΑ' in text:
+                            raise AssertionError('Closed frozen report still marked active')
+            if not found_fine:
+                raise AssertionError('Synthetic fine missing from frozen DOCX')
+            backups = list((target.parent / '.tde_runtime' / 'backup').glob('*.sqlite3'))
+            if not backups:
+                raise AssertionError('Frozen executable did not create a backup')
+            for backup in backups:
+                connection = sqlite3.connect(backup)
+                try:
+                    if connection.execute('PRAGMA integrity_check').fetchone() != ('ok',):
+                        raise AssertionError('Frozen backup integrity failure')
+                    if connection.execute('SELECT COUNT(*) FROM fines').fetchone() != (1,):
+                        raise AssertionError('Frozen backup lost the synthetic fine')
+                finally:
+                    connection.close()
+            report['steps'].append('frozen DOCX, Excel recorded times and SQLite backup contents verified')
             if query('PRAGMA integrity_check') != [('ok',)] or query('PRAGMA foreign_key_check'):
                 raise AssertionError('SQLite integrity failure')
             wait_for(lambda: query('SELECT COUNT(*) FROM pending_jobs WHERE resolved_at IS NULL') == [(0,)])
