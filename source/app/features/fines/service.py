@@ -368,8 +368,8 @@ class FineService:
             final_end = datetime.fromisoformat(shift["ended_at"])
         else:
             final_end = end_dt or datetime.now()
-        if final_end <= start_dt:
-            final_end = start_dt
+        if final_end < start_dt:
+            raise ValueError("Η ώρα λήξης είναι πριν από την αποθηκευμένη έναρξη της βάρδιας.")
         if archive:
             day = start_dt.strftime("%d-%m-%Y")
             folder = archive_root() / "ΠΡΟΣΤΙΜΑ" / f"{start_dt:%Y}" / f"{start_dt:%m}"
@@ -392,6 +392,7 @@ class FineService:
                 officer_rank_short=shift["officer_rank_short"] or "Ανθ/μου",
                 officer_rank_full=shift["officer_rank_full"] or "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
                 electronically_signed=bool(shift["ended_at"]),
+                active=not bool(shift["ended_at"]),
                 signed_at=datetime.fromisoformat(shift["ended_at"]) if shift["ended_at"] else None,
             )
             try:

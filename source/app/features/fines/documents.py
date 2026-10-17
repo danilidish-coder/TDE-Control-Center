@@ -4,7 +4,7 @@ import copy
 import shutil
 import tempfile
 from dataclasses import dataclass, asdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 from typing import Iterable
 from zipfile import ZipFile
@@ -83,15 +83,12 @@ class FineReportEngine:
             raise FileNotFoundError(self.base_docx)
 
     def create_report(self, output_docx: str | Path, *, officer_name: str, officer_agms: str,
-                      operational_day: date, officer_rank_short: str = "Ανθ/μου",
+                      operational_day: date | None = None, start_dt: datetime | None = None,
+                      end_dt: datetime | None = None, officer_rank_short: str = "Ανθ/μου",
                       officer_rank_full: str = "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ") -> Path:
-        """Backward-compatible 10:00→10:00 report creation.
-
-        The user-approved autonomous change allows arbitrary start/end times, but the
-        original call remains available and delegates to :meth:`create_report_window`.
-        """
-        start_dt = datetime.combine(operational_day, datetime.min.time()).replace(hour=10)
-        end_dt = start_dt + timedelta(days=1)
+        """Compatibility entry requiring an explicit recorded time window."""
+        if start_dt is None or end_dt is None:
+            raise ValueError("Απαιτούνται οι πραγματικές ώρες έναρξης και λήξης της βάρδιας.")
         return self.create_report_window(
             output_docx, officer_name=officer_name, officer_agms=officer_agms,
             start_dt=start_dt, end_dt=end_dt, officer_rank_short=officer_rank_short,
@@ -103,15 +100,15 @@ class FineReportEngine:
                              officer_rank_short: str = "Ανθ/μου",
                              officer_rank_full: str = "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
                              electronically_signed: bool = False,
-                             signed_at: datetime | None = None) -> Path:
+                             signed_at: datetime | None = None, active: bool = False) -> Path:
         """Create a clean live Anafora for an explicitly approved date/time window.
 
         This is the first deliberate deviation from the VBA workflow: the operator may
         choose the exact start/end date and time when starting a new live report.  The
         document itself remains the exact supplied VBA-era layout.
         """
-        if end_dt <= start_dt:
-            raise ValueError("Η λήξη της αναφοράς πρέπει να είναι μετά την έναρξη.")
+        if end_dt < start_dt:
+            raise ValueError("Η λήξη της αναφοράς δεν μπορεί να είναι πριν από την έναρξη.")
         output = Path(output_docx)
         with tempfile.TemporaryDirectory() as td0:
             td = Path(td0)
@@ -127,6 +124,8 @@ class FineReportEngine:
             signature_detail = clean(officer_rank_full).upper()
             if agms:
                 signature_detail = f"{signature_detail} - ΑΓΜΣ {agms}"
+            if active:
+                signature_detail += " | ΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη)."
             if electronically_signed:
                 signature_detail += " | Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας"
                 if signed_at is not None:

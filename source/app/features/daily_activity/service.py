@@ -213,7 +213,7 @@ class DailyActivityService:
         else:
             end = end_dt or datetime.now()
         if end < start:
-            end = start
+            raise ValueError("Η ώρα λήξης είναι πριν από την αποθηκευμένη έναρξη της βάρδιας.")
 
         if archive:
             folder = archive_root() / "ΗΜΕΡΗΣΙΑ ΔΡΑΣΤΗΡΙΟΤΗΤΑ" / f"{start:%Y}" / f"{start:%m}"
@@ -315,7 +315,7 @@ class DailyActivityService:
             signed_at = datetime.fromisoformat(shift["ended_at"])
             ws.merge_cells("C50:D50"); setv(50,3,f"Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {signed_at:%d/%m/%Y %H:%M}.",center=True,size=9)
         else:
-            ws.merge_cells("C50:D50"); setv(50,3,"",center=True)
+            ws.merge_cells("C50:D50"); setv(50,3,"ΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη).",center=True,size=9)
 
         for r in range(1, 51):
             ws.row_dimensions[r].height = 22

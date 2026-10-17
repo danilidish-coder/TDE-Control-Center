@@ -230,9 +230,9 @@ class VasReportEngine:
             r=etree.SubElement(p,f'{{{W}}}r');t=etree.SubElement(r,f'{{{W}}}t');t.text=text
 
     def create(self, output: str | Path, entries: Iterable[RefusalEntry], start_date: str, end_date: str,
-               start_time: str = "10:00", end_time: str = "10:00",
+               start_time: str, end_time: str,
                officer_name: str = "", officer_rank: str = "", officer_agms: str = "",
-               signed_at: str = "") -> Path:
+               signed_at: str = "", active: bool = False) -> Path:
         output=Path(output)
         with tempfile.TemporaryDirectory() as td0:
             td=Path(td0);_extract(self.reference,td)
@@ -294,6 +294,8 @@ class VasReportEngine:
                 if clean(officer_agms):
                     detail = (detail + " - " if detail else "") + f"ΑΓΜΣ {clean(officer_agms)}"
                 text=f"{identity}\n{detail}".strip()
+                if active:
+                    text += "\nΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη)."
                 if clean(signed_at):
                     text += f"\nΗ αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {clean(signed_at)}."
                 self._set_paragraph_text(sig,text)
