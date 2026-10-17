@@ -24,6 +24,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: 9984de0b0f78c1c5c41133378f75d1b28c729258
+          fetch-depth: 0
           path: _baseline
       - uses: actions/setup-python@v5
         with:
