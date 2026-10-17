@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "exe_sha256": "db56e8d048c1b3d788c273ec7a4de68fe537dd624256f441a13ef713af61b4b1",
+  "steps": [
+    "native window and fresh SQLite initialized",
+    "shift created through native UI and verified in SQLite",
+    "all six navigation buttons exercised",
+    "shift closed, daily XLSX generated, SQLite integrity and pending jobs verified"
+  ]
+}
