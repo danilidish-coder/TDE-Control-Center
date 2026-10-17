@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "exe_sha256": "aec7ea454f46f9473b65aa1db73a83f49e03aed5205eb30738ae7c613110da91",
+  "steps": [
+    "native window and fresh SQLite initialized",
+    "shift created through native UI and verified in SQLite",
+    "synthetic fine entered and confirmed through frozen native UI",
+    "all six navigation buttons exercised"
+  ],
+  "error": "AssertionError: Frozen backup lost the synthetic fine"
+}
