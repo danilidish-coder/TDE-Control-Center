@@ -27,6 +27,23 @@ def wait_for(operation, timeout=45):
     raise TimeoutError(f'Readiness condition failed: {last}')
 
 
+def select_labeled_edit(rectangle, controls):
+    """Match the grid row top even when a small desktop compresses the rows."""
+    y = (rectangle.top + rectangle.bottom) // 2
+    candidates = [c for c in controls if c.is_visible() and c.is_enabled()
+                  and c.rectangle().left >= rectangle.right
+                  and c.rectangle().top <= y <= c.rectangle().bottom]
+    if not candidates:
+        raise AssertionError('Missing editable field beside the visible label')
+    def score(control):
+        field = control.rectangle()
+        return (field.left - rectangle.right, abs(field.top - rectangle.top))
+    candidates.sort(key=score)
+    if len(candidates) > 1 and score(candidates[0]) == score(candidates[1]):
+        raise AssertionError('Ambiguous editable fields beside the visible label')
+    return candidates[0]
+
+
 def verify_backup_snapshots(folder, start, end):
     """Check both the original empty startup backup and the completed shift."""
     initial = closed = 0
@@ -120,14 +137,7 @@ def exercise(executable, output):
                 if len(labels) != 1:
                     raise AssertionError(f'Expected one field label {label!r}, got {len(labels)}')
                 rectangle = labels[0].rectangle()
-                y = (rectangle.top + rectangle.bottom) // 2
-                candidates = [c for c in window.descendants(control_type='Edit')
-                              if c.is_visible() and c.is_enabled()
-                              and c.rectangle().left >= rectangle.right
-                              and c.rectangle().top <= y <= c.rectangle().bottom]
-                if not candidates:
-                    raise AssertionError(f'Missing editable field beside {label!r}')
-                min(candidates, key=lambda c: c.rectangle().left).set_edit_text(value)
+                select_labeled_edit(rectangle, window.descendants(control_type='Edit')).set_edit_text(value)
             button(window, 'ΚΑΤΑΧΩΡΙΣΗ')
             confirmation = wait_for(lambda: dialog_window('Επιβεβαίωση'))
             yes = [b for b in confirmation.descendants(control_type='Button')
@@ -141,7 +151,7 @@ def exercise(executable, output):
             if len(buttons) != 1:
                 raise AssertionError('Missing successful fine-entry acknowledgement')
             buttons[0].click_input()
-            wait_for(lambda: query('SELECT COUNT(*) FROM fines') == [(1,)])
+            wait_for(lambda: query("SELECT p.surname,p.given_name,f.amount,COALESCE(f.imposition_protocol,'') FROM fines f JOIN people p ON p.id=f.person_id") == [('PHASE2-SYNTHETIC', 'TEST', 600, '')])
             report['steps'].append('synthetic fine entered and confirmed through frozen native UI')
             for label in ['ΑΡΝΗΣΕΙΣ', 'ΗΜΕΡΗΣΙΑ ΔΡΑΣΤΗΡΙΟΤΗΤΑ', 'ΠΕΡΙΟΔΙΚΑ', 'ΑΡΧΕΙΟ - ΑΝΑΖΗΤΗΣΗ ΠΡΟΣΩΠΟΥ', 'ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ', 'ΠΡΟΣΤΙΜΑ']:
                 button(window, label)
