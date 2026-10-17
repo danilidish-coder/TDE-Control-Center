@@ -1,0 +1,27 @@
+{
+  "app/features/daily_activity/service.py": [
+    "DailyActivityService.generate",
+    "DailyActivityService._write_workbook",
+    "DailyActivityService.generate_statistics"
+  ],
+  "app/features/fines/service.py": [
+    "FineService.generate_shift_report",
+    "FineService.open_preview"
+  ],
+  "app/features/fines/documents.py": [
+    "FineReportEngine.create_report",
+    "FineReportEngine.create_report_window"
+  ],
+  "app/features/refusals/service.py": [
+    "RefusalService.generate_vas"
+  ],
+  "app/features/refusals/documents.py": [
+    "VasReportEngine.create"
+  ],
+  "app/shared/documents/docx_mirror.py": [
+    "_pack"
+  ],
+  "app/infrastructure/backup.py": [
+    "backup_database"
+  ]
+}

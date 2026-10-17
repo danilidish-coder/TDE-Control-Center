@@ -2,7 +2,7 @@ import os
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication, QPushButton, QScrollArea, QTabWidget
+from PySide6.QtWidgets import QApplication, QPushButton, QScrollArea, QTabWidget, QSizePolicy
 
 from app.ui.dialogs import StartShiftDialog
 from app.ui.main_window import MainWindow
@@ -39,8 +39,11 @@ def test_v06_ui_interaction_and_stress():
 
     people = win.pages["people"]
     button_texts = {b.text() for b in people.findChildren(QPushButton)}
-    assert "ΧΡΗΣΗ ΣΤΑ ΠΡΟΣΤΙΜΑ" not in button_texts
-    assert "ΧΡΗΣΗ ΣΤΙΣ ΑΡΝΗΣΕΙΣ" not in button_texts
+    assert "ΧΡΗΣΗ ΣΤΑ ΠΡΟΣΤΙΜΑ" in button_texts
+    assert "ΧΡΗΣΗ ΣΤΙΣ ΑΡΝΗΣΕΙΣ" in button_texts
+
+    assert not people.use_fines_btn.isEnabled()
+    assert not people.use_refusals_btn.isEnabled()
 
     daily = win.pages["daily"]
     tabs = daily.findChildren(QTabWidget)
@@ -53,7 +56,11 @@ def test_v06_ui_interaction_and_stress():
     assert daily.auto_edit_inputs
     refusal_fields = win.pages["refusals"].f
     for key in ("surname","name","birth_place","nationality","residence","passport","passport_issuer","origin_country"):
-        assert refusal_fields[key].minimumWidth() >= 160
+        # The verified v1.0.14 form uses expanding fields, without a hard pixel
+        # minimum. Protect its actual responsive layout and input capacity.
+        assert refusal_fields[key].minimumWidth() == 0
+        assert refusal_fields[key].sizePolicy().horizontalPolicy() == QSizePolicy.Expanding
+        assert refusal_fields[key].property('dataField') is True
         assert refusal_fields[key].maxLength() >= 1000
         sample = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         refusal_fields[key].setText(sample)

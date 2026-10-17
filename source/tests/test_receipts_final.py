@@ -98,4 +98,10 @@ def test_pdf_preview_helper_is_used_for_final_reports():
     ]
     for path in targets:
         text = path.read_text(encoding="utf-8")
-        assert "open_document_preview" in text
+        if path.name == "page.py" and path.parent.name == "fines" or path.name == "archive.py" and path.parent.name == "fines":
+            assert "open_word_document" in text
+            assert "open_document_preview" not in text
+        else:
+            assert "open_document_preview" in text
+        if path.parent.name == "reports":
+            assert "open_word_document" in text

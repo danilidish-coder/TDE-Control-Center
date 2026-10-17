@@ -45,9 +45,10 @@ def test_daily_activity_signature_and_collection_total_format(tmp_path: Path, mo
     )
     ws = load_workbook(path)["Ημερήσια Δραστηριότητα"]
 
-    assert ws["C49"].value == "ΔΑΝΙΗΛΙΔΗΣ ΗΡΑΚΛΗΣ"
-    assert ws["C49"].font.bold is True
-    assert ws["C50"].value == "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ"
+    assert ws["C48"].value == "ΔΑΝΙΗΛΙΔΗΣ ΗΡΑΚΛΗΣ"
+    assert ws["C48"].font.bold is True
+    assert ws["C49"].value == "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ - ΑΓΜΣ 123456"
+    assert "ΕΝΕΡΓΗ ΒΑΡΔΙΑ" in ws["C50"].value
 
     assert ws["C14"].value == "ΕΙΣΠΡΑΞΗ ΠΡΟΣΤΙΜΩΝ"
     assert ws["C14"].font.bold is True

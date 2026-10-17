@@ -1,4 +1,4 @@
-from architecture_support import read_application_source
+from architecture_support import read_application_source, assert_current_version_label
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -18,7 +18,7 @@ def test_final_header_wordart_contract():
     assert "Visible grey extrusion" in main
     assert "project above the panel" in main
     assert "_metallic_emblem_image" in main
-    assert "ΕΚΔΟΣΗ 1.0.12" in main
+    assert_current_version_label(root)
     assert "font-weight: 900" in theme
     assert "background: transparent" in theme
 
@@ -45,5 +45,5 @@ def test_official_emblem_is_recoloured_without_white_backing():
 def test_refusal_layout_remains_locked():
     root = Path(__file__).resolve().parents[1]
     text = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
-    assert text.count("ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ") == 1
+    assert text.count("ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΒΑΣ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ") == 1
     assert text.count("ΑΡΧΕΙΟ ΒΑΣ") == 1

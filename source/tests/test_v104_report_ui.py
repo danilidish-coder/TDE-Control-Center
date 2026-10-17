@@ -8,15 +8,15 @@ def test_report_actions_are_clearly_separated_everywhere():
     daily = (root / "app/features/daily_activity/page.py").read_text(encoding="utf-8")
     reports = (root / "app/features/reports/page.py").read_text(encoding="utf-8")
 
-    assert "ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΠΡΟΣΤΙΜΑ" in fines
+    assert "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΤΡΕΧΟΥΣΑΣ ΑΝΑΦΟΡΑΣ" in fines
     assert "ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ ΠΡΟΣΤΙΜΩΝ" in fines
     assert "ΑΡΧΕΙΟ ΠΡΑΞΕΩΝ" in fines
-    assert "ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ" in refusals
+    assert "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΒΑΣ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ" in refusals
     assert "ΑΡΧΕΙΟ ΒΑΣ" in refusals
-    assert "ΤΕΛΕΥΤΑΙΑ ΑΡΝΗΣΗ" in refusals
-    assert "ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΗΜΕΡΗΣΙΑ" in daily
+    assert "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΤΡΕΧΟΥΣΑΣ ΑΡΝΗΣΗΣ" in refusals
+    assert "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΤΡΕΧΟΥΣΑΣ ΑΝΑΦΟΡΑΣ" in daily
     assert 'QPushButton("ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ")' not in daily
-    assert "ΣΤΑΤΙΣΤΙΚΑ / ΑΡΧΕΙΟ ΗΜΕΡΗΣΙΑΣ" in daily
+    assert "ΑΡΧΕΙΟ ΗΜΕΡΗΣΙΑΣ ΔΡΑΣΤΗΡΙΟΤΗΤΑΣ" in daily
     assert "ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ ΠΡΟΣΤΙΜΩΝ" in reports
     assert "ΑΡΧΕΙΟ ΒΑΣ" in reports
     assert "ΟΛΕΣ ΟΙ ΑΝΑΦΟΡΕΣ" in reports

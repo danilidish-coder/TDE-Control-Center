@@ -118,3 +118,31 @@ def test_legacy_fines_entry_does_not_invent_a_day_window(tmp_path):
     with pytest.raises(ValueError, match='πραγματικές ώρες'):
         engine.create_report(tmp_path / 'not-created.docx', officer_name='SYNTHETIC', officer_agms='', operational_day=datetime(2026, 10, 17).date())
     assert not (tmp_path / 'not-created.docx').exists()
+
+
+@pytest.mark.parametrize('service_type,method', [(FineService, 'generate_shift_report'), (RefusalService, 'generate_vas'), (DailyActivityService, 'generate')])
+def test_report_rejects_end_before_start_without_inventing_a_window(tmp_path, monkeypatch, service_type, method):
+    import app.core.paths as paths
+    monkeypatch.setattr(paths, 'runtime_root', lambda: tmp_path)
+    db = Database(tmp_path / 'invalid.sqlite3')
+    start = datetime(2026, 10, 17, 23, 43)
+    sid = seed(db, start)
+    original = dict(db.get_shift(sid))
+    with pytest.raises(ValueError, match='πριν από την αποθηκευμένη έναρξη'):
+        getattr(service_type(db), method)(sid, end_dt=start - timedelta(seconds=1))
+    assert dict(db.get_shift(sid)) == original
+
+
+def test_old_closed_shift_reports_remain_stable_while_a_new_shift_is_active(tmp_path, monkeypatch):
+    import app.core.paths as paths
+    monkeypatch.setattr(paths, 'runtime_root', lambda: tmp_path)
+    db = Database(tmp_path / 'history.sqlite3')
+    start = datetime(2026, 10, 17, 23, 41)
+    old = seed(db, start)
+    db.close_shift(start + timedelta(hours=3, minutes=19))
+    before = capture(db, old, archive=True)
+    newer = db.start_shift('NEW SYNTHETIC OFFICER', start + timedelta(days=2, hours=1))
+    after = capture(Database(db.path), old, end_dt=start + timedelta(days=400), archive=True)
+    assert after == before
+    assert db.get_open_shift()['id'] == newer
+    assert 'NEW SYNTHETIC OFFICER' not in ''.join(after)

@@ -1,4 +1,4 @@
-from architecture_support import read_application_source
+from architecture_support import read_application_source, assert_current_version_label
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -14,7 +14,7 @@ def test_v110_reference_skin_assets_and_shell_without_home_dashboard():
     main = read_application_source(root)
     assert "GreeceWatermark" in main
     assert "b.setIcon(QIcon" in main
-    assert "ΕΚΔΟΣΗ 1.0.13" in main
+    assert_current_version_label(root)
     assert "class DashboardCard" not in main
     assert '("ΑΡΧΙΚΗ ΣΕΛΙΔΑ", "home")' not in main
 

@@ -1,4 +1,4 @@
-from architecture_support import read_application_source
+from architecture_support import read_application_source, assert_current_version_label
 from pathlib import Path
 
 def test_v111_greece_watermark_is_replaced_only_visually():
@@ -9,4 +9,4 @@ def test_v111_greece_watermark_is_replaced_only_visually():
     assert 'viewBox="0 0 1828 1704"' in svg
     assert svg.count('<path') >= 2
     assert svg.count('<path') >= 50
-    assert 'ΕΚΔΟΣΗ 1.0.12' in main
+    assert_current_version_label(root)

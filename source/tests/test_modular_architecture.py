@@ -25,17 +25,34 @@ def test_legacy_import_is_the_same_module_including_monkeypatches(old, new, monk
     assert new_module._phase1_identity_probe is old_module._phase1_identity_probe
 
 
-def _without_imports(text):
+def _without_imports(text, excluded=()):
     class StripImports(ast.NodeTransformer):
         def visit_Import(self, node): return None
         def visit_ImportFrom(self, node): return None
+        def visit_ClassDef(self, node):
+            previous = getattr(self, 'scope', '')
+            self.scope = previous + node.name + '.'
+            self.generic_visit(node)
+            self.scope = previous
+            return node
+        def visit_FunctionDef(self, node):
+            name = getattr(self, 'scope', '') + node.name
+            return None if name in excluded else self.generic_visit(node)
     return ast.dump(StripImports().visit(ast.parse(text)), include_attributes=False)
 
 
 @pytest.mark.parametrize('old,new', [(a, b) for a, b in MOVES.items() if '/ui/' not in a])
 def test_moved_business_and_document_code_has_identical_ast(old, new):
     original = subprocess.check_output(['git', 'show', f'{BASE}:source/{old}'], cwd=REPO, text=True, encoding="utf-8")
-    assert _without_imports(original) == _without_imports((SOURCE / new).read_text(encoding="utf-8"))
+    # Phase 2 intentionally fixes only these documented methods. Every other
+    # statement remains protected by the original Phase 1 AST comparison.
+    authorized = json.loads((REPO / 'docs/phase2-authorized-methods.json').read_text())
+    allowed = authorized.get(new, [])
+    current = (SOURCE / new).read_text(encoding="utf-8")
+    for name in allowed:
+        for text in (original, current):
+            assert name.split('.')[-1] in {n.name for n in ast.walk(ast.parse(text)) if isinstance(n, ast.FunctionDef)}
+    assert _without_imports(original, allowed) == _without_imports(current, allowed)
 
 
 def test_import_graph_has_no_cycles_or_reverse_entry_dependencies():
@@ -86,6 +103,10 @@ def test_features_do_not_look_up_the_main_window_or_legacy_modules():
 def test_autonomous_path_resources_database_and_entry_are_unchanged():
     protected = ['source/control_center_autonomous.py', 'source/main.py', 'source/TDE_CONTROL_CENTER_v1.0.spec', 'source/requirements.txt', 'VERSION.txt']
     protected += subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', BASE, '--', 'source/modules', 'source/resources', 'source/app/core', 'SHARED_ASSETS'], cwd=REPO, text=True, encoding="utf-8").splitlines()
+    # The sole authorized core change is the separately regression-tested lock
+    # recovery policy. Database schema, timestamps, paths and all other core files
+    # still compare directly with the production baseline.
+    protected.remove('source/app/core/lock.py')
     # Git applies the checkout's text filters (e.g. Windows CRLF), while binary
     # templates remain byte exact. A line-ending conversion is not a source edit.
     result = subprocess.run(['git', 'diff', '--exit-code', BASE, '--', *protected], cwd=REPO, capture_output=True)

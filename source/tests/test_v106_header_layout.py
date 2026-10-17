@@ -1,4 +1,4 @@
-from architecture_support import read_application_source
+from architecture_support import read_application_source, assert_current_version_label
 from pathlib import Path
 import os
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -12,7 +12,7 @@ def test_v106_header_text_and_version_placement():
     assert "ΔΙΕΥΘΥΝΣΗ ΑΣΤΥΝΟΜΙΑΣ ΦΛΩΡΙΝΑΣ" in text
     assert "ΤΜΗΜΑ ΔΙΑΒΑΤΗΡΙΑΚΟΥ ΕΛΕΓΧΟΥ ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ" in text
     assert "ΚΕΝΤΡΟ ΕΛΕΓΧΟΥ ΑΞΙΩΜΑΤΙΚΟΥ ΥΠΗΡΕΣΙΑΣ" in text
-    assert 'self.version_label = QLabel("ΕΚΔΟΣΗ 1.0.12")' in text
+    assert_current_version_label(root)
     assert text.index("self.pending_btn") < text.index("self.version_label") < text.index("body.addWidget(side)")
     assert 'ΚΕΝΤΡΟ ΕΛΕΓΧΟΥ · ΕΚΔΟΣΗ 1.0.5' not in text
     assert "_raised_header_label" in text
@@ -37,11 +37,11 @@ def test_official_emblem_has_transparent_background_and_is_packaged():
 def test_refusal_bas_buttons_are_beside_other_actions_not_bottom():
     root = Path(__file__).resolve().parents[1]
     text = (root / "app/features/refusals/page.py").read_text(encoding="utf-8")
-    assert text.count("ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ") == 1
+    assert text.count("ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΒΑΣ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ") == 1
     assert text.count("ΑΡΧΕΙΟ ΒΑΣ") == 1
     tools_start = text.index("tools=QHBoxLayout()")
     forms_start = text.index("self.f={}")
-    vas_pos = text.index("ΑΝΑΦΟΡΑ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ · ΒΑΣ")
+    vas_pos = text.index("ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΒΑΣ ΤΡΕΧΟΥΣΑΣ ΒΑΡΔΙΑΣ")
     archive_pos = text.index("ΑΡΧΕΙΟ ΒΑΣ")
     bottom_pos = text.index("ar=QHBoxLayout(); ar.addStretch(1)")
     assert tools_start < vas_pos < forms_start
