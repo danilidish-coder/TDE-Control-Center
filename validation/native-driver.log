@@ -1,9 +1,0 @@
-Traceback (most recent call last):
-  File "D:\a\TDE-Control-Center\TDE-Control-Center\tools\exercise_windows_exe.py", line 210, in <module>
-    if __name__ == '__main__': main()
-                               ^^^^^^
-  File "D:\a\TDE-Control-Center\TDE-Control-Center\tools\exercise_windows_exe.py", line 207, in main
-    exercise(args.executable.resolve(), args.output.resolve())
-  File "D:\a\TDE-Control-Center\TDE-Control-Center\tools\exercise_windows_exe.py", line 170, in exercise
-    raise AssertionError('Frozen backup lost the synthetic fine')
-AssertionError: Frozen backup lost the synthetic fine
