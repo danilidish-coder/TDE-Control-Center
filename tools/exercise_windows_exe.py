@@ -46,8 +46,9 @@ def exercise(executable, output):
             finally:
                 connection.close()
         def button(parent, text):
-            controls = [control for control in parent.descendants(control_type='Button')
-                        if control.is_visible() and control.window_text() == text]
+            controls = [control for control in parent.descendants()
+                        if control.element_info.control_type in ('Button', 'RadioButton')
+                        and control.is_visible() and control.window_text() == text]
             if len(controls) != 1:
                 raise AssertionError(f'Expected one visible button {text!r}, got {len(controls)}')
             controls[0].click_input()
