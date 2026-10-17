@@ -2,8 +2,12 @@
 
 Η Φάση 2 υλοποιήθηκε στο χωριστό branch `audit/phase2-hardening-20261017`, από το τελικό checkpoint Φάσης 1 `9984de0b0f78c1c5c41133378f75d1b28c729258`. Η παλιά παύση παρακάτω είναι αποκλειστικά ιστορικό αρχείο.
 
-- Ακριβές source/εργαλεία υπό Windows επαλήθευση: `557558b5d25695ecf93c9e50be99f0c67afe7859`, αποθηκευμένο στο origin.
-- Τρέχουσα τελική εκτέλεση: https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39014785312 — αναμένεται το τελικό αποτέλεσμα. Οι προηγούμενες προσπάθειες και οι ακριβείς διορθώσεις των validation fixtures/driver καταγράφονται στη συνολική αναφορά. Το προηγούμενο EXE κατασκευάστηκε και λειτούργησε μέχρι τον έλεγχο backup· ο driver απαιτούσε λανθασμένα να έχει πρόστιμο και το κενό αρχικό backup. Διορθώθηκε ο έλεγχος και αποδείχθηκε με πραγματικές SQLite. Ο κώδικας εφαρμογής δεν άλλαξε από το `5dedd6e...`.
+- Ελεγμένο source/εργαλεία τελικής πιστοποίησης: `70c1eb0ddf8b3bfcbabbb4e58afc1ca2c3097909`, αποθηκευμένο στο origin.
+- Τελική εκτέλεση: [39015354501 — **SUCCESS**](https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39015354501). Windows: **228 PASS, 0 FAIL/ERROR/SKIP/XFAIL**. Φάση 1 baseline: **177 PASS + τις ίδιες 12 ιστορικές FAIL**. UI/Business comparisons και πραγματικό frozen EXE: **PASS**.
+- EXE build source: `557558b5d25695ecf93c9e50be99f0c67afe7859` / run `39014785312`. Το τελικό run επαναχρησιμοποίησε το ίδιο EXE με hash verification και Git diff μηδέν σε όλα τα application inputs. Το manifest διαχωρίζει build SHA και validation SHA.
+- EXE SHA-256: `f782edc38cb7881a0e6862bc00aec49e111135c572789c02970d3877c77b6f02`.
+- Immutable evidence: `408c4b9de0fe479ffef8e72fb890f572e502f846`, paths `validation/run.json`, `windows-comparison.json`, `behavior-comparison.json`, `build-manifest.json`, `frozen-exe/functional-report.json` και πρωτογενή JUnit/logs.
+- Artifact: `control-center-phase2-70c1eb0ddf8b3bfcbabbb4e58afc1ca2c3097909`, retention 14 ημέρες. Δεν είναι παραγωγική έκδοση.
 - Τοπικά: 228 PASS, 0 FAIL/SKIP/XFAIL· 177 παλιά PASS, 12 τεκμηριωμένες επικαιροποιήσεις παρωχημένων tests, 39 νέα PASS. Κανένα ιστορικό test δεν αφαιρέθηκε.
 - Οι χρόνοι βάρδιας αποθηκεύονταν ήδη σωστά. Διατηρήθηκαν DB/schema/timestamps και προστέθηκαν regressions για πραγματικές ώρες σε DOCX/ΒΑΣ/XLSX, ιστορική σταθερότητα και ενεργή προεπισκόπηση. Δεν υπάρχει υπόθεση 10:00/διάρκειας στις κύριες ροές.
 - Διορθώσεις: atomic αντικατάσταση Word/Excel, σαφές Word άνοιγμα σε χωριστό αντίγραφο, consistent SQLite backup και ασφαλής πολιτική lock με ρητή έγκριση χρήστη.
@@ -11,7 +15,7 @@
 - Συνολική αναφορά: [PHASE2_HARDENING_EL.md](PHASE2_HARDENING_EL.md). Τεχνικά Windows τεκμήρια στο χωριστό `validation/control-center-phase2`, όχι στο production branch.
 - Πραγματικό Office/εκτύπωση/SMB δεν πιστοποιήθηκαν. Δεν έγινε merge/main, release/tag, αντικατάσταση v1.0.14 ή μετακίνηση πραγματικών δεδομένων.
 
-Πρώτη ενέργεια συνέχισης όσο εκκρεμεί το αποτέλεσμα: fetch του evidence ref, ανάγνωση `validation/run.json` και διασταύρωση ακριβούς SHA/run, πριν από οποιαδήποτε επανεκκίνηση workflow. Μην επαναλάβεις τη modular μετατροπή ή συγχωνεύσεις main.
+Πρώτη ενέργεια συνέχισης: επιβεβαίωση branch/καθαρού working tree, ανάγνωση της συνολικής αναφοράς και των immutable τεκμηρίων του επιτυχούς run. Το παρόν τελικό commit είναι μόνο τεκμηρίωση με `[skip ci]`· source/tools/workflows ταυτίζονται με το ελεγμένο `70c1eb0...`. Δεν χρειάζεται νέο validation χωρίς νέα αλλαγή ή πρόβλημα. Επόμενη ουσιαστική εκκρεμότητα είναι ο συμφωνημένος έλεγχος πραγματικού Word/εκτύπωσης/SMB σε χωριστό synthetic περιβάλλον· η autonomous απαιτεί τη χωριστή επόμενη εργασία. Μετά λήξη του artifact ή αλλαγή application inputs χρειάζεται νέο δοκιμαστικό build. Μην επαναλάβεις τη modular μετατροπή, κάνεις merge στο main ή προχωρήσεις σε παραγωγική εγκατάσταση/release χωρίς νέα ρητή έγκριση.
 
 ---
 
