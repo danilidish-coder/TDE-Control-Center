@@ -1,8 +1,8 @@
 from __future__ import annotations
+from app.infrastructure.word_open import open_word_document
 from app.contracts import PageActions
 
 import os
-from app.infrastructure.pdf_preview import open_document_preview
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -155,7 +155,7 @@ class FinesArchiveDialog(QDialog):
             if not path:
                 raise ValueError("Δεν βρέθηκαν καταχωρίσεις στη συγκεκριμένη βάρδια.")
             if os.name == "nt":
-                open_document_preview(path)
+                open_word_document(path)
             else:
                 QMessageBox.information(self, "Προεπισκόπηση", str(path))
         except Exception as exc:

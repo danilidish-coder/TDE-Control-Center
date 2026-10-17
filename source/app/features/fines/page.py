@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.infrastructure.word_open import open_word_document
 from app.contracts import PageActions
 import os
 from datetime import datetime
@@ -157,6 +158,6 @@ class FinesPage(QWidget):
             if not shift: raise ValueError('Δεν υπάρχει διαθέσιμη βάρδια για αναφορά.')
             path=self.service.generate_shift_report(int(shift['id']),archive=False)
             if path is None: raise ValueError('Δεν υπάρχουν καταχωρίσεις Προστίμων στη βάρδια.')
-            if os.name=='nt': os.startfile(str(path))
+            if os.name=='nt': open_word_document(path)
             else: QMessageBox.information(self,'Προεπισκόπηση',f'Δημιουργήθηκε:\n{path}')
         except Exception as exc: QMessageBox.warning(self,'Προεπισκόπηση Προστίμων',str(exc))

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.infrastructure.word_open import open_word_document
 
 import json
 import os
@@ -405,4 +406,4 @@ class FineService:
     def open_preview(path: str | Path) -> None:
         if os.name != "nt":
             return
-        os.startfile(str(path))
+        open_word_document(path)

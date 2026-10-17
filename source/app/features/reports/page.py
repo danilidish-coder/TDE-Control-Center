@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.infrastructure.word_open import open_word_document
 
 import os
 from app.infrastructure.pdf_preview import open_document_preview
@@ -219,7 +220,7 @@ class ShiftReportsPage(QWidget):
             else:
                 raise ValueError("Άγνωστος τύπος αναφοράς.")
             if kind == "FINES" and os.name == "nt":
-                os.startfile(str(path))
+                open_word_document(path)
             else:
                 self._open(path)
         except Exception as exc:
