@@ -1,0 +1,88 @@
+{
+  "baseline_tests": 189,
+  "current_tests": 227,
+  "historical_failures": [
+    "test_receipts_final::test_pdf_preview_helper_is_used_for_final_reports",
+    "test_release_branding::test_release_branding_and_build_files",
+    "test_v06_ui::test_v06_ui_interaction_and_stress",
+    "test_v103_daily_activity_format::test_daily_activity_signature_and_collection_total_format",
+    "test_v104_report_ui::test_report_actions_are_clearly_separated_everywhere",
+    "test_v106_header_layout::test_refusal_bas_buttons_are_beside_other_actions_not_bottom",
+    "test_v106_header_layout::test_v106_header_text_and_version_placement",
+    "test_v107_final_visual::test_final_header_wordart_contract",
+    "test_v107_final_visual::test_refusal_layout_remains_locked",
+    "test_v110_reference_skin::test_v110_reference_skin_assets_and_shell_without_home_dashboard",
+    "test_v111_greece_watermark::test_v111_greece_watermark_is_replaced_only_visually",
+    "test_v112_accurate_greece_watermark::test_v112_accurate_greece_watermark_asset"
+  ],
+  "missing": [],
+  "changed_outcomes": {
+    "test_receipts_final::test_pdf_preview_helper_is_used_for_final_reports": [
+      "failure",
+      "passed"
+    ],
+    "test_release_branding::test_release_branding_and_build_files": [
+      "failure",
+      "passed"
+    ],
+    "test_v06_ui::test_v06_ui_interaction_and_stress": [
+      "failure",
+      "passed"
+    ],
+    "test_v103_daily_activity_format::test_daily_activity_signature_and_collection_total_format": [
+      "failure",
+      "passed"
+    ],
+    "test_v104_report_ui::test_report_actions_are_clearly_separated_everywhere": [
+      "failure",
+      "passed"
+    ],
+    "test_v106_header_layout::test_v106_header_text_and_version_placement": [
+      "failure",
+      "passed"
+    ],
+    "test_v106_header_layout::test_refusal_bas_buttons_are_beside_other_actions_not_bottom": [
+      "failure",
+      "passed"
+    ],
+    "test_v107_final_visual::test_final_header_wordart_contract": [
+      "failure",
+      "passed"
+    ],
+    "test_v107_final_visual::test_refusal_layout_remains_locked": [
+      "failure",
+      "passed"
+    ],
+    "test_v110_reference_skin::test_v110_reference_skin_assets_and_shell_without_home_dashboard": [
+      "failure",
+      "passed"
+    ],
+    "test_v111_greece_watermark::test_v111_greece_watermark_is_replaced_only_visually": [
+      "failure",
+      "passed"
+    ],
+    "test_v112_accurate_greece_watermark::test_v112_accurate_greece_watermark_asset": [
+      "failure",
+      "passed"
+    ]
+  },
+  "new_tests_passed": 38,
+  "new_tests_not_passed": {},
+  "compatible": true,
+  "documented_historical_corrections": [
+    "test_receipts_final::test_pdf_preview_helper_is_used_for_final_reports",
+    "test_release_branding::test_release_branding_and_build_files",
+    "test_v06_ui::test_v06_ui_interaction_and_stress",
+    "test_v103_daily_activity_format::test_daily_activity_signature_and_collection_total_format",
+    "test_v104_report_ui::test_report_actions_are_clearly_separated_everywhere",
+    "test_v106_header_layout::test_refusal_bas_buttons_are_beside_other_actions_not_bottom",
+    "test_v106_header_layout::test_v106_header_text_and_version_placement",
+    "test_v107_final_visual::test_final_header_wordart_contract",
+    "test_v107_final_visual::test_refusal_layout_remains_locked",
+    "test_v110_reference_skin::test_v110_reference_skin_assets_and_shell_without_home_dashboard",
+    "test_v111_greece_watermark::test_v111_greece_watermark_is_replaced_only_visually",
+    "test_v112_accurate_greece_watermark::test_v112_accurate_greece_watermark_asset"
+  ],
+  "baseline_failure_set_matches_phase1": true,
+  "unexpected_outcome_changes": {}
+}

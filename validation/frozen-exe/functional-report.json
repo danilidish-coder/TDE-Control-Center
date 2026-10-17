@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "exe_sha256": "f782edc38cb7881a0e6862bc00aec49e111135c572789c02970d3877c77b6f02",
+  "steps": [
+    "native window and fresh SQLite initialized",
+    "shift created through native UI and verified in SQLite",
+    "synthetic fine entered and confirmed through frozen native UI",
+    "all six navigation buttons exercised"
+  ],
+  "error": "AssertionError: Unexpected frozen backup shift or fine contents"
+}
