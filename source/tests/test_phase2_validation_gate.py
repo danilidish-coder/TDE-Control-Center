@@ -26,20 +26,21 @@ def test_behavior_gate_rejects_any_difference_except_one_active_preview_annotati
     tools = Path(__file__).resolve().parents[2] / 'tools'
     monkeypatch.syspath_prepend(str(tools))
     from compare_phase2_behavior import compare_behavior, PREVIEW, PART, ANNOTATION
-    baseline = {'database': {'shift': 'closed'}, 'documents': {PREVIEW: {PART: '<t>signature</t>'}, 'archive/fines.docx': {PART: '<t>original final</t>'}}}
-    current = deepcopy(baseline)
-    current['documents'][PREVIEW][PART] = '<t>signature' + ANNOTATION + '</t>'
-    assert compare_behavior(baseline, current)['compatible']
-    assert not compare_behavior(baseline, baseline)['compatible']
-    changed = deepcopy(current)
-    changed['database']['shift'] = 'changed'
-    assert not compare_behavior(baseline, changed)['compatible']
-    changed = deepcopy(current)
-    changed['documents']['archive/fines.docx'][PART] += ANNOTATION
-    assert not compare_behavior(baseline, changed)['compatible']
-    changed = deepcopy(current)
-    changed['documents'][PREVIEW][PART] += ANNOTATION
-    assert not compare_behavior(baseline, changed)['compatible']
-    changed = deepcopy(current)
-    changed['documents'][PREVIEW][PART] = '<t>changed signature' + ANNOTATION + '</t>'
-    assert not compare_behavior(baseline, changed)['compatible']
+    for preview in (PREVIEW, PREVIEW.replace('/', chr(92))):
+        baseline = {'database': {'shift': 'closed'}, 'documents': {preview: {PART: '<t>signature</t>'}, 'archive/fines.docx': {PART: '<t>original final</t>'}}}
+        current = deepcopy(baseline)
+        current['documents'][preview][PART] = '<t>signature' + ANNOTATION + '</t>'
+        assert compare_behavior(baseline, current)['compatible']
+        assert not compare_behavior(baseline, baseline)['compatible']
+        changed = deepcopy(current)
+        changed['database']['shift'] = 'changed'
+        assert not compare_behavior(baseline, changed)['compatible']
+        changed = deepcopy(current)
+        changed['documents']['archive/fines.docx'][PART] += ANNOTATION
+        assert not compare_behavior(baseline, changed)['compatible']
+        changed = deepcopy(current)
+        changed['documents'][preview][PART] += ANNOTATION
+        assert not compare_behavior(baseline, changed)['compatible']
+        changed = deepcopy(current)
+        changed['documents'][preview][PART] = '<t>changed signature' + ANNOTATION + '</t>'
+        assert not compare_behavior(baseline, changed)['compatible']

@@ -11,10 +11,13 @@ ANNOTATION = '\nΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προ
 
 def compare_behavior(baseline, current):
     normalized = deepcopy(current)
-    xml = normalized.get('documents', {}).get(PREVIEW, {}).get(PART, '')
-    annotation_present = xml.count(ANNOTATION) == 1
+    candidates = [name for name in (PREVIEW, PREVIEW.replace('/', chr(92)))
+                  if name in baseline.get('documents', {}) and name in normalized.get('documents', {})]
+    preview = candidates[0] if len(candidates) == 1 else PREVIEW
+    xml = normalized.get('documents', {}).get(preview, {}).get(PART, '')
+    annotation_present = len(candidates) == 1 and xml.count(ANNOTATION) == 1
     if annotation_present:
-        normalized['documents'][PREVIEW][PART] = xml.replace(ANNOTATION, '', 1)
+        normalized['documents'][preview][PART] = xml.replace(ANNOTATION, '', 1)
     return {
         'compatible': annotation_present and baseline == normalized,
         'active_preview_annotation_present_once': annotation_present,
