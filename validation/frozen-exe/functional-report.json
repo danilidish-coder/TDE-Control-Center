@@ -1,9 +1,0 @@
-{
-  "status": "failed",
-  "exe_sha256": "e056329a015e7947fb62d9c7413f0ebc8d9b347078793d2c374397b096472b84",
-  "steps": [
-    "native window and fresh SQLite initialized",
-    "shift created through native UI and verified in SQLite"
-  ],
-  "error": "AssertionError: Expected one visible button 'ΑΡΝΗΣΕΙΣ', got 0"
-}
