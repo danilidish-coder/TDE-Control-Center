@@ -383,19 +383,19 @@ class FineService:
             return None
         with self.db.lock.acquire():
             header_tmp = output.with_suffix(".header.docx")
-            self.engine.create_report_window(
-                header_tmp,
-                officer_name=shift["officer_name"],
-                officer_agms=shift["officer_agms"] or "",
-                start_dt=start_dt,
-                end_dt=final_end,
-                officer_rank_short=shift["officer_rank_short"] or "Ανθ/μου",
-                officer_rank_full=shift["officer_rank_full"] or "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
-                electronically_signed=bool(shift["ended_at"]),
-                active=not bool(shift["ended_at"]),
-                signed_at=datetime.fromisoformat(shift["ended_at"]) if shift["ended_at"] else None,
-            )
             try:
+                self.engine.create_report_window(
+                    header_tmp,
+                    officer_name=shift["officer_name"],
+                    officer_agms=shift["officer_agms"] or "",
+                    start_dt=start_dt,
+                    end_dt=final_end,
+                    officer_rank_short=shift["officer_rank_short"] or "Ανθ/μου",
+                    officer_rank_full=shift["officer_rank_full"] or "ΑΝΘΥΠΑΣΤΥΝΟΜΟΣ",
+                    electronically_signed=bool(shift["ended_at"]),
+                    active=not bool(shift["ended_at"]),
+                    signed_at=datetime.fromisoformat(shift["ended_at"]) if shift["ended_at"] else None,
+                )
                 self.engine.write_entries(output, [self._row_to_entry(x) for x in rows], source_docx=header_tmp)
             finally:
                 header_tmp.unlink(missing_ok=True)

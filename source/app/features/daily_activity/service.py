@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from app.infrastructure.atomic_output import atomic_output
+
 import json
 import os
 from app.infrastructure.pdf_preview import open_document_preview
@@ -327,7 +329,11 @@ class DailyActivityService:
         ws.sheet_properties.pageSetUpPr.fitToPage = True
         ws.page_margins.left = 0.25; ws.page_margins.right = 0.25; ws.page_margins.top = 0.35; ws.page_margins.bottom = 0.35
         output.parent.mkdir(parents=True, exist_ok=True)
-        wb.save(output)
+        try:
+            with atomic_output(output) as temporary:
+                wb.save(temporary)
+        finally:
+            wb.close()
 
     def list_archive(self, limit: int = 5000):
         with self.db.connect() as con:
@@ -419,7 +425,11 @@ class DailyActivityService:
         folder.mkdir(parents=True, exist_ok=True)
         name = f"ΣΤΑΤΙΣΤΙΚΟ_ΜΗΝΙΑΙΟ_{month:02d}-{year}.xlsx" if month is not None else f"ΣΤΑΤΙΣΤΙΚΟ_ΕΤΗΣΙΟ_{year}.xlsx"
         output = folder / name
-        wb.save(output)
+        try:
+            with atomic_output(output) as temporary:
+                wb.save(temporary)
+        finally:
+            wb.close()
         return output
 
     @staticmethod

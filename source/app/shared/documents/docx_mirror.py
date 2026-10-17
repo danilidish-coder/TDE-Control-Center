@@ -6,6 +6,8 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 from lxml import etree
 
+from app.infrastructure.atomic_output import atomic_output
+
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W}
 XML = "http://www.w3.org/XML/1998/namespace"
@@ -27,11 +29,11 @@ def _extract(docx: Path, folder: Path) -> None:
 
 
 def _pack(folder: Path, docx: Path) -> None:
-    docx.parent.mkdir(parents=True, exist_ok=True)
-    with ZipFile(docx, "w", ZIP_DEFLATED) as z:
-        for f in folder.rglob("*"):
-            if f.is_file():
-                z.write(f, f.relative_to(folder).as_posix())
+    with atomic_output(docx) as temporary:
+        with ZipFile(temporary, "w", ZIP_DEFLATED) as z:
+            for f in folder.rglob("*"):
+                if f.is_file():
+                    z.write(f, f.relative_to(folder).as_posix())
 
 
 def replace_sequence(root, old: str, new: str, *, bold: bool | None = None) -> int:
