@@ -44,3 +44,41 @@ def test_behavior_gate_rejects_any_difference_except_one_active_preview_annotati
         changed = deepcopy(current)
         changed['documents'][preview][PART] = '<t>changed signature' + ANNOTATION + '</t>'
         assert not compare_behavior(baseline, changed)['compatible']
+
+
+def test_frozen_backup_check_distinguishes_initial_snapshot_from_completed_shift(tmp_path, monkeypatch):
+    import sqlite3
+    from datetime import datetime
+    import pytest
+    tools = Path(__file__).resolve().parents[2] / 'tools'
+    monkeypatch.syspath_prepend(str(tools))
+    from exercise_windows_exe import verify_backup_snapshots
+    from app.core.db import Database
+    from app.features.fines.documents import FineEntry
+    from app.features.fines.service import FineService
+    from app.infrastructure.backup import backup_database
+    import app.core.paths as paths
+    monkeypatch.setattr(paths, 'runtime_root', lambda: tmp_path)
+    db = Database(tmp_path / 'data.sqlite3')
+    initial = backup_database(db.path)
+    start, end = datetime(2026, 10, 17, 23, 43), datetime(2026, 10, 18, 3, 19)
+    db.start_shift('SYNTHETIC', start)
+    FineService(db).add_fine('IMPOSITION', FineEntry(date='17/10/2026', surname='PHASE2-SYNTHETIC', name='TEST', amount=600), start)
+    db.close_shift(end)
+    final = backup_database(db.path)
+    args = (initial.parent, start.isoformat(timespec='seconds'), end.isoformat(timespec='seconds'))
+    assert verify_backup_snapshots(*args) == {'initial_snapshots': 1, 'closed_shift_snapshots': 1}
+    connection = sqlite3.connect(final)
+    try:
+        connection.execute('DELETE FROM fines')
+        connection.commit()
+    finally:
+        connection.close()
+    with pytest.raises(AssertionError, match='Unexpected frozen backup'):
+        verify_backup_snapshots(*args)
+    final.unlink()
+    with pytest.raises(AssertionError, match='Both the initial and completed'):
+        verify_backup_snapshots(*args)
+    initial.write_bytes(b'truncated SQLite')
+    with pytest.raises(sqlite3.DatabaseError):
+        verify_backup_snapshots(*args)

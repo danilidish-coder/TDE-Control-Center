@@ -27,6 +27,29 @@ def wait_for(operation, timeout=45):
     raise TimeoutError(f'Readiness condition failed: {last}')
 
 
+def verify_backup_snapshots(folder, start, end):
+    """Check both the original empty startup backup and the completed shift."""
+    initial = closed = 0
+    for backup in folder.glob('*.sqlite3'):
+        connection = sqlite3.connect(backup)
+        try:
+            if connection.execute('PRAGMA integrity_check').fetchone() != ('ok',) or connection.execute('PRAGMA foreign_key_check').fetchall():
+                raise AssertionError('Frozen backup integrity failure')
+            shifts = connection.execute('SELECT started_at, ended_at, status FROM shifts ORDER BY id').fetchall()
+            fines = connection.execute('SELECT p.surname,p.given_name,f.amount FROM fines f JOIN people p ON p.id=f.person_id ORDER BY f.id').fetchall()
+            if not shifts and not fines:
+                initial += 1
+            elif shifts == [(start, end, 'CLOSED')] and fines == [('PHASE2-SYNTHETIC', 'TEST', 600)]:
+                closed += 1
+            else:
+                raise AssertionError('Unexpected frozen backup shift or fine contents')
+        finally:
+            connection.close()
+    if initial < 1 or closed < 1:
+        raise AssertionError('Both the initial and completed-shift backups must exist')
+    return {'initial_snapshots': initial, 'closed_shift_snapshots': closed}
+
+
 def exercise(executable, output):
     if os.name != 'nt': raise RuntimeError('This check requires a real Windows desktop')
     import psutil
@@ -128,6 +151,16 @@ def exercise(executable, output):
             yes = [b for b in confirmation.descendants(control_type='Button') if b.window_text().replace('&', '').lower() in ('yes', 'ναι')]
             if len(yes) != 1: raise AssertionError('Missing close-shift confirmation button')
             yes[0].click_input()
+            def successful_close_dialog():
+                result = dialog_window('Κλείσιμο βάρδιας')
+                texts = [c.window_text() for c in result.descendants(control_type='Text')]
+                return result if any('Η βάρδια έκλεισε και οι αναφορές αρχειοθετήθηκαν.' in text for text in texts) else None
+            completed = wait_for(successful_close_dialog)
+            buttons = [b for b in completed.descendants(control_type='Button')
+                       if b.is_visible() and b.window_text().replace('&', '').lower() in ('ok', 'εντάξει')]
+            if len(buttons) != 1:
+                raise AssertionError('Missing completed close-shift acknowledgement')
+            buttons[0].click_input()
             wait_for(lambda: query('SELECT status FROM shifts') == [('CLOSED',)])
             workbook = wait_for(lambda: next((target.parent / '.tde_runtime' / 'archive').rglob('*.xlsx'), None))
             book = wait_for(lambda: load_workbook(workbook))
@@ -158,18 +191,7 @@ def exercise(executable, output):
                             raise AssertionError('Closed frozen report still marked active')
             if not found_fine:
                 raise AssertionError('Synthetic fine missing from frozen DOCX')
-            backups = list((target.parent / '.tde_runtime' / 'backup').glob('*.sqlite3'))
-            if not backups:
-                raise AssertionError('Frozen executable did not create a backup')
-            for backup in backups:
-                connection = sqlite3.connect(backup)
-                try:
-                    if connection.execute('PRAGMA integrity_check').fetchone() != ('ok',):
-                        raise AssertionError('Frozen backup integrity failure')
-                    if connection.execute('SELECT COUNT(*) FROM fines').fetchone() != (1,):
-                        raise AssertionError('Frozen backup lost the synthetic fine')
-                finally:
-                    connection.close()
+            report['backups'] = verify_backup_snapshots(target.parent / '.tde_runtime' / 'backup', start, end)
             report['steps'].append('frozen DOCX, Excel recorded times and SQLite backup contents verified')
             if query('PRAGMA integrity_check') != [('ok',)] or query('PRAGMA foreign_key_check'):
                 raise AssertionError('SQLite integrity failure')
