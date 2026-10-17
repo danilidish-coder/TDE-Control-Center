@@ -17,8 +17,13 @@ def backup_database(db_file: Path) -> Path | None:
     dest = folder / f"tde_{datetime.now():%Y%m%d_%H%M%S_%f}_{uuid4().hex[:8]}.sqlite3"
     # SQLite's backup API includes committed WAL pages and gives a consistent
     # snapshot while other connections write. A file copy cannot do that.
+    uri = db_file.resolve().as_uri()
+    if uri.startswith("file://") and not uri.startswith("file:///"):
+        # Keep a Windows UNC server in the filename rather than URI authority:
+        # SQLite builds do not generally allow non-local URI authorities.
+        uri = "file:////" + uri[len("file://"):]
     with atomic_output(dest) as temporary:
-        with closing(sqlite3.connect(db_file.resolve().as_uri() + "?mode=ro", uri=True)) as source:
+        with closing(sqlite3.connect(uri + "?mode=ro", uri=True)) as source:
             with closing(sqlite3.connect(temporary)) as target:
                 source.backup(target)
                 if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":

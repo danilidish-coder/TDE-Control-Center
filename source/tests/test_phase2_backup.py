@@ -65,3 +65,21 @@ def test_backup_failure_preserves_previous_backups_and_cleans_partial(tmp_path, 
     assert valid.read_bytes() == previous
     assert list(folder.iterdir()) == [valid]
     assert backup_database(tmp_path / 'missing.sqlite3') is None
+
+
+def test_backup_encodes_unc_filename_without_nonlocal_uri_authority(tmp_path, monkeypatch):
+    from pathlib import PureWindowsPath
+    import app.infrastructure.backup as module
+    class Source:
+        def exists(self): return True
+        def resolve(self): return PureWindowsPath('//SYNTHETIC-SERVER/share/a b.sqlite3')
+    monkeypatch.setattr(module, 'backup_root', lambda: tmp_path / 'backup')
+    calls = []
+    def capture(filename, **kwargs):
+        calls.append((filename, kwargs))
+        raise OSError('synthetic connection stop')
+    monkeypatch.setattr(module.sqlite3, 'connect', capture)
+    with pytest.raises(OSError, match='synthetic connection stop'):
+        backup_database(Source())
+    assert calls == [('file:////SYNTHETIC-SERVER/share/a%20b.sqlite3?mode=ro', {'uri': True})]
+    assert list((tmp_path / 'backup').iterdir()) == []
