@@ -193,6 +193,15 @@ class FineReportEngine:
         def child(parent, name):
             found = parent.find(f"{{{W}}}{name}")
             return found if found is not None else etree.SubElement(parent, f"{{{W}}}{name}")
+        orders = {
+            "tcPr": "cnfStyle tcW gridSpan hMerge vMerge tcBorders shd noWrap tcMar textDirection tcFitText vAlign hideMark headers cellIns cellDel cellMerge tcPrChange",
+            "pPr": "pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr suppressLineNumbers pBdr shd tabs suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr pPrChange",
+            "rPr": "rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath rPrChange",
+        }
+        def schema_order(properties):
+            order = orders[etree.QName(properties).localname].split()
+            indices = {name: i for i, name in enumerate(order)}
+            properties[:] = sorted(properties, key=lambda n: indices.get(etree.QName(n).localname, len(order)))
         for index, row in enumerate(rows[first:]):
             for cell in row.xpath("./w:tc", namespaces=NS):
                 properties = child(cell, "tcPr")
@@ -223,6 +232,9 @@ class FineReportEngine:
                         for size in ("sz", "szCs"):
                             child(props, size).set(f"{{{W}}}val", "16")
                         child(props, "b").set(f"{{{W}}}val", "1" if index == 0 else "0")
+                        schema_order(props)
+                    schema_order(child(paragraph, "pPr"))
+                schema_order(properties)
 
     def write_entries(self, output_docx: str | Path, entries: Iterable[FineEntry], *, source_docx: str | Path | None = None) -> Path:
         source = Path(source_docx) if source_docx else self.base_docx

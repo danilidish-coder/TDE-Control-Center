@@ -30,6 +30,8 @@ def test_receipts_only_style_top_exact_xml_and_all_economic_fields_unchanged(tmp
         after=FineReportEngine(resource_path('Anafora_base.docx')).write_entries(tmp_path/'after.docx',entries)
     finally:
         del sys.modules[module.__name__]
+    from docx import Document
+    assert len(Document(after).tables[0].columns)==11
     old,new=table(before),table(after)
     oldrows=old.xpath('./w:tr',namespaces=NS);rows=new.xpath('./w:tr',namespaces=NS)
     first=FineReportEngine._find_collection_header(rows)
@@ -43,3 +45,11 @@ def test_receipts_only_style_top_exact_xml_and_all_economic_fields_unchanged(tmp
         assert set(row.xpath('.//w:rPr/w:sz/@w:val',namespaces=NS))=={'16'}
         assert row.xpath('./w:tc/w:tcPr/w:tcMar',namespaces=NS)
     assert etree.tostring(old.find(f'{{{W}}}tblGrid'))==etree.tostring(new.find(f'{{{W}}}tblGrid'))
+
+    for props in new.xpath('.//w:tcPr',namespaces=NS)[first*11:]:
+        tags=[etree.QName(c).localname for c in props]
+        if 'tcMar' in tags and 'vAlign' in tags:
+            assert tags.index('tcMar')<tags.index('vAlign')
+    for props in new.xpath('./w:tr[position()>%d]//w:pPr' % first,namespaces=NS):
+        tags=[etree.QName(c).localname for c in props]
+        assert tags.index('spacing')<tags.index('rPr') if 'rPr' in tags else True
