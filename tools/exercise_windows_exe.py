@@ -27,13 +27,13 @@ def wait_for(operation, timeout=45):
     raise TimeoutError(f'Readiness condition failed: {last}')
 
 
-def select_labeled_edit(rectangle, controls):
+def select_labeled_edit(rectangle, controls, *, include_disabled=False):
     """Match row tops; editable combo children have a 6px vertical inset.
 
     Labels and controls overlap on a compressed runner desktop. A combo Edit
     can begin just below its label midpoint, so midpoint containment is unsafe.
     """
-    candidates = [c for c in controls if c.is_visible() and c.is_enabled()
+    candidates = [c for c in controls if c.is_visible() and (include_disabled or c.is_enabled())
                   and c.rectangle().left >= rectangle.right
                   and c.rectangle().top <= rectangle.bottom + 12
                   and c.rectangle().bottom >= rectangle.top]
@@ -205,7 +205,7 @@ def exercise(executable, output):
             method_labels = [c for c in window.descendants(control_type='Text')
                              if c.is_visible() and c.window_text() == 'ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ']
             if len(method_labels) != 1: raise AssertionError('Missing collection method label')
-            method_combo = select_labeled_edit(method_labels[0].rectangle(), window.descendants(control_type='ComboBox'))
+            method_combo = select_labeled_edit(method_labels[0].rectangle(), window.descendants(control_type='ComboBox'), include_disabled=True)
             method_edits = method_combo.descendants(control_type='Edit')
             if len(method_edits) != 1: raise AssertionError('Missing editable collection method combo')
             method_edit = method_edits[0]

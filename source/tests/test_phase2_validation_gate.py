@@ -117,6 +117,14 @@ def test_native_editable_combo_uses_recorded_inset_geometry_not_neighbor(monkeyp
     assert select_labeled_edit(rect(698,396,843,406),controls).name=='method'
     assert select_labeled_edit(rect(698,414,843,424),controls).name=='protocol'
     assert select_labeled_edit(rect(698,432,843,441),controls).name=='officer'
+    method_combo=edit('method_combo',rect(855,396,998,444))
+    method_combo.is_enabled=lambda:False
+    amount_combo=edit('amount_combo',rect(855,379,998,427))
+    # Locate the disabled method widget before PAYMENT activates it. Ordinary
+    # writable-field matching still excludes disabled controls by default.
+    assert select_labeled_edit(rect(698,396,843,406),[amount_combo,method_combo],include_disabled=True).name=='method_combo'
+    assert select_labeled_edit(rect(698,396,843,406),[amount_combo,method_combo]).name=='amount_combo'
+
 
 
 def test_native_operation_is_explicitly_selected_and_verified_before_entry(monkeypatch):
