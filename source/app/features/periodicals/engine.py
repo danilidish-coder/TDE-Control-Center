@@ -153,6 +153,7 @@ class PeriodicalsEngine:
 
     def __init__(self, packages: Iterable[Package], files: Iterable[PackageFile]):
         self.packages = {p.id: p for p in packages}
+        self.package_cycles: dict[str, str] = {}
         self.files = list(files)
 
     def active_packages(self) -> list[Package]:
@@ -500,6 +501,23 @@ class PeriodicalsEngine:
         finally:
             f.managed_copy_path = ""
 
+    @staticmethod
+    def _copy_working_document(source: Path, destination: Path) -> None:
+        created = False
+        try:
+            with destination.open("xb") as output:
+                created = True
+                with source.open("rb") as input_file:
+                    shutil.copyfileobj(input_file, output)
+            shutil.copystat(source, destination)
+        except FileExistsError:
+            # Another station may have created its working document meanwhile.
+            return
+        except Exception:
+            if created:
+                destination.unlink(missing_ok=True)
+            raise
+
     def sync_package_folder(self, package_id: str, allowed_date: date | None = None) -> Path:
         """Mirror v10.3 SyncPackageFolder up to the user's Abort/Retry/Ignore choice.
 
@@ -510,6 +528,11 @@ class PeriodicalsEngine:
         if not clean(package.root):
             raise ValueError("Δεν έχει οριστεί μόνιμος φάκελος πακέτου.")
         folder = Path(package.root) / package.name
+        cycle_date = self.package_cycles.get(package_id, "")
+        if cycle_date:
+            # Step 1 chooses the next cycle. Earlier unsent/edited packages stay
+            # exactly where they were; Step 3 never deletes or rolls a cycle.
+            folder = folder / date.fromisoformat(cycle_date).isoformat()
         folder.mkdir(parents=True, exist_ok=True)
 
         copied = 0
@@ -518,7 +541,6 @@ class PeriodicalsEngine:
         failed: list[str] = []
         for f in self.package_files(package_id, active_only=False):
             if not f.active:
-                self._remove_managed_copy(f, folder)
                 continue
             active += 1
             src = self.latest_prepared_path(f, allowed_date)
@@ -526,15 +548,15 @@ class PeriodicalsEngine:
                 missing.append(f.name or Path(f.source_path).name)
                 continue
             dest = folder / src.name
-            old = Path(f.managed_copy_path) if clean(f.managed_copy_path) else None
-            if old is not None and old != dest:
-                self._remove_managed_copy(f, folder)
+            # Earlier managed copies may be edited or unsent; retain them.
 
             copy_error: Exception | None = None
-            if src.resolve() != dest.resolve():
+            if src.resolve() != dest.resolve() and not dest.exists():
+                # Existing copies are operator working documents. Repeated
+                # Step 3 is idempotent and must never overwrite their edits.
                 for _attempt in range(3):
                     try:
-                        shutil.copy2(src, dest)
+                        self._copy_working_document(src, dest)
                         copy_error = None
                         break
                     except Exception as exc:

@@ -39,11 +39,15 @@ class PeriodicalsService:
             data = json.loads(self.profile.read_text(encoding="utf-8"))
         packages = [Package(**x) for x in data.get("packages", [])]
         files = [PackageFile(**x) for x in data.get("files", [])]
-        return UnifiedPeriodicalsEngine(packages, files), data, self.profile
+        engine = UnifiedPeriodicalsEngine(packages, files)
+        cycles = data.get("package_cycles", {})
+        engine.package_cycles = dict(cycles) if isinstance(cycles, dict) else {}
+        return engine, data, self.profile
 
     def save(self, engine: UnifiedPeriodicalsEngine, data: dict, path: Path | None = None) -> None:
         path = path or self.profile
         payload = dict(data)
+        payload["package_cycles"] = dict(engine.package_cycles)
         payload["packages"] = [asdict(p) for p in sorted(engine.packages.values(), key=lambda x: x.order)]
         payload["files"] = [asdict(f) for f in engine.files]
         with self.lock.acquire():
@@ -140,6 +144,8 @@ class PeriodicalsService:
         allowed = operational_date(when)
         engine, data, path = self.load()
         result = engine.prepare_next_package(package_id, allowed)
+        if not result.failed:
+            engine.package_cycles[package_id] = min(result.target_date, allowed).isoformat()
         self.save(engine, data, path)
         return result
 
@@ -164,6 +170,8 @@ class PeriodicalsService:
                     processed[key] = out
                     paths.append(str(out))
             result[pkg.id] = paths
+            if paths and len(paths) == len(engine.package_files(pkg.id)):
+                engine.package_cycles[pkg.id] = target_date.isoformat()
         self.save(engine, data, path)
         return result
 

@@ -150,9 +150,10 @@ class PeriodicalsPage(QWidget):
         p = self.engine.packages[pid]; files = self.engine.package_files(pid)
         self.info.setText(f"{p.name} · {len(files)} ενεργά αρχεία\nΠρος: {p.to or '—'}\n{p.notes or ''}")
         if hasattr(self, "latest_btn"):
-            self.latest_btn.setEnabled(False)
-            self.ready_btn.setEnabled(False)
-            self.flow_status.setText("ΒΗΜΑ 1: Πατήστε «ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ» για να ξεκινήσετε.")
+            prepared = bool(p.last_folder or self.engine.package_cycles.get(pid))
+            self.latest_btn.setEnabled(prepared)
+            self.ready_btn.setEnabled(prepared)
+            self.flow_status.setText("Το αποθηκευμένο πακέτο παραμένει διαθέσιμο. Το Βήμα 3 μπορεί να επαναληφθεί χωρίς αποστολή." if prepared else "ΒΗΜΑ 1: Πατήστε «ΕΝΗΜΕΡΩΣΗ ΑΡΧΕΙΩΝ» για να ξεκινήσετε.")
 
     def manage(self):
         current = self._id(); PackageManagerDialog(self.service, self).exec(); self.refresh()
@@ -190,7 +191,7 @@ class PeriodicalsPage(QWidget):
         while True:
             try:
                 folder = self.service.sync_package(self._id())
-                QMessageBox.information(self, "Έτοιμο πακέτο", str(folder)); self.service.open_path(folder); self.refresh(); return
+                QMessageBox.information(self, "Έτοιμο πακέτο", str(folder)); self.service.open_path(folder); self.ready_btn.setEnabled(True); self.latest_btn.setEnabled(True); return
             except IncompletePackageError as exc:
                 details = []
                 if exc.missing: details.append("Δεν βρέθηκαν:\n• " + "\n• ".join(exc.missing))

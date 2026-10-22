@@ -138,7 +138,7 @@ def test_package_sync_keeps_only_latest_managed_copy(tmp_path):
     engine.sync_package_folder("P1", date(2026, 10, 5))
     p5 = folder / "REPORT 05-10-2026.xlsx"
     assert p5.exists()
-    assert not p4.exists()
+    assert p4.exists()  # Older/unsent working copies are explicitly preserved.
     assert (root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "REPORT 04-10-2026.xlsx").exists()
 
 

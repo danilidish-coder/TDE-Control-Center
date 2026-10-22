@@ -68,7 +68,7 @@ def test_periodicals_prepare_and_sync_keeps_only_latest_managed_package_copy(tmp
     engine.sync_package_folder("PKG004", d3)
     managed3 = package_folder / expected3.name
     assert managed3.exists()
-    assert not managed2.exists(), "Το Πακέτο πρέπει να κρατά μόνο το τελευταίο managed αντίγραφο."
+    assert managed2.exists(), "Το Βήμα 3 διατηρεί παλιότερα και μη απεσταλμένα αντίγραφα."
 
     # The historical archive/source must remain untouched.
     assert source1.exists()
