@@ -9,6 +9,8 @@ from pathlib import Path
 
 from app.core.lock import SharedWriteLock
 from app.core.paths import resource_path, runtime_root
+from app.core.textnorm import normalize_text
+from app.infrastructure.atomic_output import atomic_output
 from app.shared.documents.common import clean, operational_date
 from app.features.periodicals.engine import (
     IncompletePackageError, Package, PackageFile,
@@ -80,7 +82,60 @@ class PeriodicalsService:
     def remove(self, package_id: str, source_path: str) -> None:
         self._mutate(lambda e: e.remove_file_from_package(package_id, source_path))
 
+    def relocate_daily_movement(self, package_id: str | None = None) -> dict | None:
+        """Step 1 only: rename one complete legacy folder; never merge or delete."""
+        with self.lock.acquire():
+            data = json.loads(self.profile.read_text(encoding="utf-8"))
+            files = [PackageFile(**x) for x in data.get("files", [])]
+            candidates = set()
+            for f in files:
+                if package_id is not None and f.package_id != package_id:
+                    continue
+                old = Path(f.archive_root)
+                parent = normalize_text(old.parent.name).replace(" ", "")
+                if UnifiedPeriodicalsEngine._daily_root(old) and parent in {
+                    "PERIODIKASHAREDFILES", "2SHAREDFILESREPORTS", "SHAREDFILESREPORTS", "SHAREDFILES",
+                }:
+                    candidates.add(old)
+            if not candidates:
+                return None
+            if len(candidates) != 1:
+                raise ValueError("Βρέθηκαν πολλοί διαφορετικοί φάκελοι Ημερήσιας Κίνησης. Απαιτείται έλεγχος χωρίς μαζική μεταφορά.")
+            old = candidates.pop()
+            target = old.parent.parent / old.name
+            if old.exists() and target.exists():
+                raise FileExistsError(f"Υπάρχουν και οι δύο φάκελοι Ημερήσιας Κίνησης. Δεν έγινε συγχώνευση ή διαγραφή: {old} / {target}")
+            if not old.exists() and not target.is_dir():
+                raise FileNotFoundError(f"Δεν βρέθηκε ο φάκελος Ημερήσιας Κίνησης: {old}")
+            if old.exists() and not old.is_dir():
+                raise ValueError("Η διαδρομή Ημερήσιας Κίνησης δεν είναι φάκελος.")
+            if old.is_symlink() or target.is_symlink():
+                raise ValueError("Δεν μεταφέρεται αυτόματα συντόμευση φακέλου Ημερήσιας Κίνησης.")
+            moved = old.exists()
+            if moved:
+                old.rename(target)
+            try:
+                for collection, fields in ((data.get("files", []), ("source_path", "prepared_path", "archive_root", "managed_copy_path")), (data.get("packages", []), ("root", "last_folder"))):
+                    for row in collection:
+                        for field in fields:
+                            raw = row.get(field)
+                            if not raw:
+                                continue
+                            try:
+                                relative = Path(raw).relative_to(old)
+                            except ValueError:
+                                continue
+                            row[field] = str(target / relative)
+                with atomic_output(self.profile) as temporary:
+                    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            except Exception:
+                if moved:
+                    target.rename(old)
+                raise
+            return {"from": str(old), "to": str(target), "moved": moved}
+
     def prepare_package(self, package_id: str, when: datetime | None = None) -> PreparationResult:
+        self.relocate_daily_movement(package_id)
         when = when or datetime.now()
         allowed = operational_date(when)
         engine, data, path = self.load()
@@ -89,6 +144,7 @@ class PeriodicalsService:
         return result
 
     def prepare_all_for_date(self, target_date: date) -> dict[str, list[str]]:
+        self.relocate_daily_movement()
         engine, data, path = self.load()
         result: dict[str, list[str]] = {}
         processed: dict[str, Path] = {}
