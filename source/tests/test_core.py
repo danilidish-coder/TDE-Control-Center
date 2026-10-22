@@ -267,7 +267,9 @@ def test_daily_activity_auto_manual_preview_and_archive(tmp_path: Path, monkeypa
     assert s["refusals_total"] == 2 and s["refusal_A"] == 1 and s["refusal_H"] == 1
     assert s["fine_imposition_600"] == 1
     assert s["fine_eparavolo_600"] == 1
-    assert s["fine_payment_1200"] == 1
+    assert s["fine_payment_1200"] == 0
+    assert s["fine_unclassified_1200"] == 1
+    assert s["payments_total"] == 2
     assert s["no_fine_art16_1a"] == 2 and s["vehicles_total"] == 7
     assert s["h_both_name_change"] == 1 and s["h_both_only"] == 0
 

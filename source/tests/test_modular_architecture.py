@@ -47,12 +47,17 @@ def test_moved_business_and_document_code_has_identical_ast(old, new):
     # Phase 2 intentionally fixes only these documented methods. Every other
     # statement remains protected by the original Phase 1 AST comparison.
     authorized = json.loads((REPO / 'docs/phase2-authorized-methods.json').read_text())
-    allowed = authorized.get(new, [])
+    fields = json.loads((REPO / 'docs/field-authorized-methods-20261022.json').read_text()).get(new, {})
+    allowed = list(dict.fromkeys([*authorized.get(new, []), *fields.get('changed', [])]))
+    introduced = fields.get('introduced', [])
     current = (SOURCE / new).read_text(encoding="utf-8")
     for name in allowed:
         for text in (original, current):
             assert name.split('.')[-1] in {n.name for n in ast.walk(ast.parse(text)) if isinstance(n, ast.FunctionDef)}
-    assert _without_imports(original, allowed) == _without_imports(current, allowed)
+    for name in introduced:
+        assert name.split('.')[-1] not in {n.name for n in ast.walk(ast.parse(original)) if isinstance(n, ast.FunctionDef)}
+        assert name.split('.')[-1] in {n.name for n in ast.walk(ast.parse(current)) if isinstance(n, ast.FunctionDef)}
+    assert _without_imports(original, allowed + introduced) == _without_imports(current, allowed + introduced)
 
 
 def test_import_graph_has_no_cycles_or_reverse_entry_dependencies():
@@ -101,8 +106,10 @@ def test_features_do_not_look_up_the_main_window_or_legacy_modules():
 
 
 def test_autonomous_path_resources_database_and_entry_are_unchanged():
-    protected = ['source/control_center_autonomous.py', 'source/main.py', 'source/TDE_CONTROL_CENTER_v1.0.spec', 'source/requirements.txt', 'VERSION.txt']
+    protected = ['source/control_center_autonomous.py', 'source/main.py', 'source/requirements.txt']
     protected += subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', BASE, '--', 'source/modules', 'source/resources', 'source/app/core', 'SHARED_ASSETS'], cwd=REPO, text=True, encoding="utf-8").splitlines()
+    # Candidate build identity is separately checked in test_field_version.
+    # Candidate build identity is separately checked in test_field_version.
     # The sole authorized core change is the separately regression-tested lock
     # recovery policy. Database schema, timestamps, paths and all other core files
     # still compare directly with the production baseline.

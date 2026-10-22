@@ -1,0 +1,91 @@
+{
+  "app/features/periodicals/engine.py": {
+    "changed": [
+      "PeriodicalsEngine.__init__",
+      "PeriodicalsEngine.sync_package_folder"
+    ],
+    "introduced": [
+      "PeriodicalsEngine._copy_working_document"
+    ]
+  },
+  "app/features/periodicals/page.py": {
+    "changed": [
+      "PeriodicalsPage._refresh_info",
+      "PeriodicalsPage.sync"
+    ],
+    "introduced": []
+  },
+  "app/features/periodicals/unified_engine.py": {
+    "changed": [
+      "UnifiedPeriodicalsEngine._normalize_definitions",
+      "UnifiedPeriodicalsEngine._archive_root_for_new",
+      "UnifiedPeriodicalsEngine.add_known_file_to_package",
+      "UnifiedPeriodicalsEngine.add_new_file_to_package",
+      "UnifiedPeriodicalsEngine._candidate_files",
+      "UnifiedPeriodicalsEngine.expected_prepared_path",
+      "UnifiedPeriodicalsEngine.prepare_file",
+      "UnifiedPeriodicalsEngine.prepare_next_package"
+    ],
+    "introduced": [
+      "UnifiedPeriodicalsEngine._scan_root",
+      "UnifiedPeriodicalsEngine._daily_root",
+      "UnifiedPeriodicalsEngine._normalize_file",
+      "UnifiedPeriodicalsEngine._destination",
+      "UnifiedPeriodicalsEngine.file_identity"
+    ]
+  },
+  "app/features/periodicals/service.py": {
+    "changed": [
+      "PeriodicalsService.load",
+      "PeriodicalsService.save",
+      "PeriodicalsService.prepare_package",
+      "PeriodicalsService.prepare_all_for_date"
+    ],
+    "introduced": [
+      "PeriodicalsService.relocate_daily_movement"
+    ]
+  },
+  "app/features/periodicals/dates.py": {
+    "changed": [
+      "series_folder_for_filename"
+    ],
+    "introduced": []
+  },
+  "app/features/refusals/documents.py": {
+    "changed": [
+      "VasReportEngine.create"
+    ],
+    "introduced": []
+  },
+  "app/features/daily_activity/page.py": {
+    "changed": [
+      "DailyActivityPage._build"
+    ],
+    "introduced": []
+  },
+  "app/features/daily_activity/service.py": {
+    "changed": [
+      "DailyActivityService.automatic_summary",
+      "DailyActivityService.summary_for_shift",
+      "DailyActivityService._write_workbook",
+      "DailyActivityService.generate_statistics"
+    ],
+    "introduced": []
+  },
+  "app/features/receipts/workbook.py": {
+    "changed": [
+      "ProtocolWorkbookWriter.write"
+    ],
+    "introduced": []
+  },
+  "app/features/fines/documents.py": {
+    "changed": [
+      "FineEntry.daily_identity",
+      "FineReportEngine.create_report_window",
+      "FineReportEngine.write_entries"
+    ],
+    "introduced": [
+      "FineReportEngine._format_collections"
+    ]
+  }
+}

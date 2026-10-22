@@ -16,7 +16,7 @@ def setup(tmp_path,monkeypatch):
     import app.core.paths as paths
     monkeypatch.setattr(paths,'runtime_root',lambda:tmp_path)
     db=Database(tmp_path/'test.sqlite3')
-    sid=db.start_shift('SYNTHETIC',datetime(2026,10,22,23,41))
+    sid=db.start_shift('SYNTHETIC',datetime(2026,9,22,23,41))
     return db,sid,FineService(db),DailyActivityService(db)
 
 def entry(method,amount=600):
@@ -82,3 +82,25 @@ def test_protocol_classification_retains_amount_formulas_and_unknown_grand_total
     assert formulas=={'payment':'=SUM(C12,C13,C14,C15)','eparavolo':'=SUM(C16,C17,C18)','detypa':'=SUM(C19,C20,C21)'}
     assert unknown
     assert protocol_category_formulas([],12)==({'payment':'=0','eparavolo':'=0','detypa':'=0'},False)
+
+
+def test_every_refusal_category_correction_deletion_and_h_totals(tmp_path,monkeypatch):
+    from app.features.refusals.documents import RefusalEntry,REFUSAL_REASONS,activity_cell
+    from app.features.refusals.service import RefusalService
+    db,sid,_,daily=setup(tmp_path,monkeypatch)
+    service=RefusalService(db)
+    expected={f'refusal_{c}':0 for c in 'ABCDEFGHI'}
+    mapping={'B11':'A','B12':'B','B13':'C','B14':'D','B15':'E','B16':'F','B17':'G','B19':'H','B20':'H','B21':'H','B25':'I'}
+    for index,reason in enumerate(REFUSAL_REASONS):
+        item=RefusalEntry(aa=str(index+1),year='2026',protocol_prefix='TEST',protocol_no=str(index+1),date='22-10-2026',time='23:45',sex='M',surname='SYNTHETIC',name='TEST',birth_date='',passport='',issue_date='',reason=reason,measure_no='DKA' if index%3!=0 else '',sis_no='SIS' if index%3!=1 else '',language='ΑΓΓΛΙΚΑ')
+        service.add_refusal(item)
+        expected['refusal_'+mapping[activity_cell(reason,item.measure_no,item.sis_no)]]+=1
+    s=daily.summary_for_shift(sid)
+    assert {k:s[k] for k in expected}==expected
+    assert s['refusals_total']==len(REFUSAL_REASONS)
+    with db.connect() as con:rid=con.execute('SELECT id FROM refusals ORDER BY id LIMIT 1').fetchone()[0]
+    service.update_refusal(rid,replace(item,reason='I-ΕΠΙΚΙΝΔΥΝΟ ΑΤΟΜΟ'))
+    after=daily.summary_for_shift(sid)
+    assert after['refusal_A']==expected['refusal_A']-1 and after['refusal_I']==expected['refusal_I']+1
+    service.delete_refusal(rid)
+    assert daily.summary_for_shift(sid)['refusals_total']==len(REFUSAL_REASONS)-1
