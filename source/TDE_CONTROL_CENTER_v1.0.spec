@@ -1,8 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
+import runpy
 
 root = Path(SPECPATH)
 resources = root / 'resources'
+identity = runpy.run_path(str(root / 'app' / 'version.py'))
+from PyInstaller.utils.win32.versioninfo import VSVersionInfo, FixedFileInfo, StringFileInfo, StringTable, StringStruct, VarFileInfo, VarStruct
+version_info = VSVersionInfo(
+    ffi=FixedFileInfo(filevers=identity['WINDOWS_VERSION'], prodvers=identity['WINDOWS_VERSION'], mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0, 0)),
+    kids=[StringFileInfo([StringTable('040904B0', [
+        StringStruct('FileVersion', identity['APP_VERSION']),
+        StringStruct('ProductVersion', identity['APP_VERSION']),
+        StringStruct('ProductName', 'TDE CONTROL CENTER'),
+        StringStruct('FileDescription', 'CONTROL CENTER candidate validation build'),
+        StringStruct('OriginalFilename', identity['EXE_NAME'] + '.exe'),
+    ])]), VarFileInfo([VarStruct('Translation', [1033, 1200])])],
+)
 
 datas = [
     (str(resources / 'Anafora_base.docx'), 'resources'),
@@ -45,7 +58,8 @@ a = Analysis(
 pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, a.binaries, a.datas, [],
-    name='TDE_CONTROL_CENTER_v1.0',
+    name=identity['EXE_NAME'],
+    version=version_info,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

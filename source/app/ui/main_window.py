@@ -13,7 +13,7 @@ from app.ui.shell import build_shell
 from app.ui.theme import DARK, LIGHT, stylesheet
 from app.ui.widgets import Card
 
-APP_VERSION = "1.0.14"
+from app.version import APP_VERSION
 
 
 class MainWindow(QMainWindow):
