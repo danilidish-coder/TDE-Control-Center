@@ -1,0 +1,34 @@
+{
+  "status": "failed",
+  "exe_sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+  "steps": [
+    "native Windows version resource, filename and GUI version verified",
+    "native window and fresh SQLite initialized",
+    "shift created through native UI and verified in SQLite",
+    "synthetic fine entered and confirmed through frozen native UI"
+  ],
+  "version": "1.0.15",
+  "windows_file_version": [
+    1,
+    0,
+    15,
+    0
+  ],
+  "payment_rows": [
+    [
+      "IMPOSITION",
+      "",
+      600,
+      "",
+      ""
+    ],
+    [
+      "IMPOSITION",
+      "",
+      600,
+      "ΕΦΟΡΙΑ",
+      ""
+    ]
+  ],
+  "error": "TimeoutError: Readiness condition failed: None"
+}

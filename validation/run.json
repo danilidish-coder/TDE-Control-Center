@@ -1,6 +1,6 @@
 {
   "source_commit": "71e5b56bcbfd1f8db7af46032697a69862e12a8d",
-  "job_status": "running",
+  "job_status": "success",
   "run_url": "https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39840470655",
   "production_release": false
 }

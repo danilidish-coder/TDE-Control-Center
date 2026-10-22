@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "exe_sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+  "steps": [
+    "native Windows version resource, filename and GUI version verified",
+    "native window and fresh SQLite initialized",
+    "shift created through native UI and verified in SQLite",
+    "synthetic fine entered and confirmed through frozen native UI",
+    "EFORIA payment entered through frozen UI and linked receipt verified",
+    "all six navigation buttons exercised",
+    "frozen DOCX, Excel recorded times and SQLite backup contents verified",
+    "shift closed, daily XLSX generated, SQLite integrity and pending jobs verified",
+    "frozen executable restarted with stable closed-shift times and both acts"
+  ],
+  "version": "1.0.15",
+  "windows_file_version": [
+    1,
+    0,
+    15,
+    0
+  ],
+  "payment_operation_selection": "UIA named combo selection",
+  "payment_rows": [
+    [
+      "IMPOSITION",
+      "",
+      600,
+      "",
+      ""
+    ],
+    [
+      "PAYMENT",
+      "ΕΦΟΡΙΑ",
+      600,
+      "",
+      ""
+    ]
+  ],
+  "backups": {
+    "initial_snapshots": 1,
+    "closed_shift_snapshots": 1
+  }
+}
