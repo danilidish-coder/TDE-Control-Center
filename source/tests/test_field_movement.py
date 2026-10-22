@@ -66,3 +66,11 @@ def test_already_moved_folder_reconciles_saved_profile_without_moving_files(tmp_
     result=service.relocate_daily_movement('P')
     assert not result['moved']
     assert Path(json.loads(service.profile.read_text(encoding='utf-8'))['files'][0]['source_path']).exists()
+
+
+def test_windows_junction_is_not_automatically_moved(tmp_path,monkeypatch):
+    service,old,_=setup_profile(tmp_path,monkeypatch)
+    before=service.profile.read_bytes()
+    monkeypatch.setattr(Path,'is_junction',lambda p:p==old,raising=False)
+    with pytest.raises(ValueError):service.relocate_daily_movement('P')
+    assert old.is_dir() and service.profile.read_bytes()==before

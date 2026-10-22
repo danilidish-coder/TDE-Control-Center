@@ -113,7 +113,7 @@ class PeriodicalsService:
                 raise FileNotFoundError(f"Δεν βρέθηκε ο φάκελος Ημερήσιας Κίνησης: {old}")
             if old.exists() and not old.is_dir():
                 raise ValueError("Η διαδρομή Ημερήσιας Κίνησης δεν είναι φάκελος.")
-            if old.is_symlink() or target.is_symlink():
+            if any(p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()) for p in (old, target)):
                 raise ValueError("Δεν μεταφέρεται αυτόματα συντόμευση φακέλου Ημερήσιας Κίνησης.")
             moved = old.exists()
             if moved:
