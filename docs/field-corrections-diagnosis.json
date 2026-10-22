@@ -1,0 +1,114 @@
+{
+  "scan_actual_normalization": {
+    "archive_roots": [
+      "ΑΝΑΦΟΡΕΣ ΑΞ.ΥΠ.",
+      "ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α.",
+      "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ"
+    ],
+    "layouts": [
+      "YEAR_MONTH",
+      "YEAR_MONTH",
+      "YEAR_MONTH"
+    ],
+    "prepared_paths": [
+      "ΑΝΑΦΟΡΕΣ ΑΞ.ΥΠ./2027/1. ΙΑΝΟΥΑΡΙΟΣ 2027/ΑΝΑΦΟΡΕΣ 01-01-2027 ΑΞ.ΥΠ..docx",
+      "ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α./2027/1. ΙΑΝΟΥΑΡΙΟΣ 2027/ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α. 01-01-2027.xlsm",
+      "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ/2027/1. ΙΑΝΟΥΑΡΙΟΣ 2027/ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 01-01-2027.xlsx"
+    ],
+    "original_files_intact": true
+  },
+  "scan_shared_root": {
+    "latest_names_per_type": [
+      "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 31-12-2026.xlsx",
+      "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 31-12-2026.xlsx",
+      "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 31-12-2026.xlsx"
+    ],
+    "prepared_count": 1,
+    "skipped_count": 0,
+    "expected_member_count": 3
+  },
+  "daily_movement_dynamic_profile": {
+    "profile_loaded": true,
+    "archive_root_stays_under_shared_files": true,
+    "source_file_intact": true,
+    "desired_parent_exists": false
+  },
+  "step3_files": {
+    "repeated_sync_overwrites_unsent_user_edits": true,
+    "old_managed_file_deleted_on_new_sync": true
+  },
+  "payment_classification": [
+    {
+      "method": "ΧΡΗΜ ΠΟΣΟ",
+      "fine_entry_identity": "EISPRAXI_600",
+      "daily_increment": {
+        "fine_payment_600": 1
+      }
+    },
+    {
+      "method": "ΜΕΤΡΗΤΑ",
+      "fine_entry_identity": "REJECTED",
+      "daily_increment": {
+        "fine_payment_600": 1
+      }
+    },
+    {
+      "method": "e-ΠΑΡΑΒΟΛΟ",
+      "fine_entry_identity": "EPARAVOLO_600",
+      "daily_increment": {
+        "fine_eparavolo_600": 1
+      }
+    },
+    {
+      "method": "ΕΦΟΡΙΑ",
+      "fine_entry_identity": "TYPOU_A_600",
+      "daily_increment": {
+        "fine_payment_600": 1
+      }
+    },
+    {
+      "method": "Δ.Ε. ΤΥΠΟΥ-Α",
+      "fine_entry_identity": "REJECTED",
+      "daily_increment": {
+        "fine_detypa_600": 1
+      }
+    },
+    {
+      "method": "UNKNOWN-SYNTHETIC",
+      "fine_entry_identity": "REJECTED",
+      "daily_increment": {
+        "fine_payment_600": 1
+      }
+    },
+    {
+      "method": "<EMPTY>",
+      "fine_entry_identity": "EPIVOLI_600",
+      "daily_increment": {
+        "fine_payment_600": 1
+      }
+    }
+  ],
+  "direct_receipt_daily": {
+    "before_total": 7,
+    "after_total": 7,
+    "direct_receipt_counted": false
+  },
+  "new_documents": {
+    "fines_claims_electronic_signature": true,
+    "daily_claims_electronic_signature": true,
+    "actual_shift_window": "Βάρδια: 21/10/2026 23:43 έως 22/10/2026 03:19"
+  },
+  "fine_summary": {
+    "fine_imposition_600": 0,
+    "fine_imposition_1200": 0,
+    "fine_payment_600": 5,
+    "fine_payment_1200": 0,
+    "fine_eparavolo_600": 1,
+    "fine_eparavolo_1200": 0,
+    "fine_detypa_600": 1,
+    "fine_detypa_1200": 0,
+    "impositions_total": 0,
+    "payments_total": 7
+  },
+  "all_data_synthetic": true
+}
