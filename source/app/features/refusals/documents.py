@@ -297,7 +297,7 @@ class VasReportEngine:
                 if active:
                     text += "\nΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη)."
                 if clean(signed_at):
-                    text += f"\nΗ αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {clean(signed_at)}."
+                    text += f"\nΗ εφαρμογή έκλεισε στις {clean(signed_at)}."
                 self._set_paragraph_text(sig,text)
                 body.insert(insert_at,sig);insert_at+=1
             xml.write_bytes(etree.tostring(root,xml_declaration=True,encoding='UTF-8',standalone='yes'))

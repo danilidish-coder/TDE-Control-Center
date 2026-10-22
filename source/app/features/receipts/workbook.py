@@ -115,8 +115,8 @@ class ProtocolWorkbookWriter:
             receiver_sig = f"Ο ΠΑΡΑΛΑΒΩΝ\n{receiver}".rstrip()
             if collector and receiver:
                 stamp_text = stamp.strftime("%d/%m/%Y %H:%M")
-                collector_sig += f"\nΗλεκτρονική καταχώριση παράδοσης: {stamp_text}"
-                receiver_sig += f"\nΗλεκτρονική καταχώριση παραλαβής: {stamp_text}"
+                collector_sig += f"\nΚαταχώριση παράδοσης: {stamp_text}"
+                receiver_sig += f"\nΚαταχώριση παραλαβής: {stamp_text}"
             _set_shape_text(ws, "TextBox 3", collector_sig)
             _set_shape_text(ws, "TextBox 5", receiver_sig)
 

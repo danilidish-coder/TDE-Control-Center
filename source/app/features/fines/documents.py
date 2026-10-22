@@ -125,7 +125,7 @@ class FineReportEngine:
             if active:
                 signature_detail += " | ΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη)."
             if electronically_signed:
-                signature_detail += " | Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας"
+                signature_detail += " | Η εφαρμογή έκλεισε"
                 if signed_at is not None:
                     signature_detail += f" στις {signed_at.strftime('%d/%m/%Y %H:%M')}"
                 signature_detail += "."

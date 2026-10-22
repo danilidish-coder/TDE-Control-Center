@@ -323,7 +323,7 @@ class DailyActivityService:
         ws.merge_cells("C49:D49"); setv(49,3,signature_detail,center=True)
         if shift["ended_at"]:
             signed_at = datetime.fromisoformat(shift["ended_at"])
-            ws.merge_cells("C50:D50"); setv(50,3,f"Η αναφορά υπογράφηκε ηλεκτρονικά κατά το κλείσιμο της βάρδιας στις {signed_at:%d/%m/%Y %H:%M}.",center=True,size=9)
+            ws.merge_cells("C50:D50"); setv(50,3,f"Η εφαρμογή έκλεισε στις {signed_at:%d/%m/%Y %H:%M}.",center=True,size=9)
         else:
             ws.merge_cells("C50:D50"); setv(50,3,"ΠΡΟΕΠΙΣΚΟΠΗΣΗ — ΕΝΕΡΓΗ ΒΑΡΔΙΑ (προσωρινή λήξη).",center=True,size=9)
 
