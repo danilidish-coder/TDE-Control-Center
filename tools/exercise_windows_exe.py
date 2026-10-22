@@ -28,16 +28,20 @@ def wait_for(operation, timeout=45):
 
 
 def select_labeled_edit(rectangle, controls):
-    """Match the grid row top even when a small desktop compresses the rows."""
-    y = (rectangle.top + rectangle.bottom) // 2
+    """Match row tops; editable combo children have a 6px vertical inset.
+
+    Labels and controls overlap on a compressed runner desktop. A combo Edit
+    can begin just below its label midpoint, so midpoint containment is unsafe.
+    """
     candidates = [c for c in controls if c.is_visible() and c.is_enabled()
                   and c.rectangle().left >= rectangle.right
-                  and c.rectangle().top <= y <= c.rectangle().bottom]
+                  and c.rectangle().top <= rectangle.bottom + 12
+                  and c.rectangle().bottom >= rectangle.top]
     if not candidates:
         raise AssertionError('Missing editable field beside the visible label')
     def score(control):
         field = control.rectangle()
-        return (field.left - rectangle.right, abs(field.top - rectangle.top))
+        return (abs(field.top - rectangle.top), field.left - rectangle.right)
     candidates.sort(key=score)
     if len(candidates) > 1 and score(candidates[0]) == score(candidates[1]):
         raise AssertionError('Ambiguous editable fields beside the visible label')
@@ -198,6 +202,7 @@ def exercise(executable, output):
                                 if b.is_visible() and b.window_text().replace('&', '').lower() in ('ok', 'εντάξει')]
             if len(acknowledgements) != 1: raise AssertionError('Missing payment acknowledgement')
             acknowledgements[0].click_input()
+            report['payment_rows'] = query("SELECT operation_type,collection_method,amount,measure,collection_protocol FROM fines ORDER BY id")
             wait_for(lambda: query("SELECT operation_type,collection_method,amount FROM fines ORDER BY id") == [('IMPOSITION', '', 600), ('PAYMENT', 'ΕΦΟΡΙΑ', 600)])
             if query('SELECT COUNT(*) FROM receipts') != [(1,)]: raise AssertionError('Payment receipt not synchronized')
             report['steps'].append('EFORIA payment entered through frozen UI and linked receipt verified')

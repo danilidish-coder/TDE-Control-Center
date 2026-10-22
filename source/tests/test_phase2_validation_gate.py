@@ -102,3 +102,18 @@ def test_native_field_selection_uses_recorded_small_windows_desktop_geometry(mon
         select_labeled_edit(rect(386,200,531,210), fields)
     with pytest.raises(AssertionError, match='Ambiguous'):
         select_labeled_edit(rect(386,396,531,406), fields + [fields[3]])
+
+
+def test_native_editable_combo_uses_recorded_inset_geometry_not_neighbor(monkeypatch):
+    from types import SimpleNamespace
+    tools=Path(__file__).resolve().parents[2]/'tools'
+    monkeypatch.syspath_prepend(str(tools))
+    from exercise_windows_exe import select_labeled_edit
+    def rect(l,t,r,b):return SimpleNamespace(left=l,top=t,right=r,bottom=b)
+    def edit(name,box):return SimpleNamespace(name=name,rectangle=lambda:box,is_visible=lambda:True,is_enabled=lambda:True)
+    # Actual UIA rectangles from failed run 39835119592. Method label midpoint
+    # 401 is one pixel ABOVE the combo's Edit. Previous selector chose measure.
+    controls=[edit('measure',rect(855,361,998,409)),edit('method',rect(866,402,929,438)),edit('protocol',rect(855,414,998,462)),edit('officer',rect(855,432,998,480))]
+    assert select_labeled_edit(rect(698,396,843,406),controls).name=='method'
+    assert select_labeled_edit(rect(698,414,843,424),controls).name=='protocol'
+    assert select_labeled_edit(rect(698,432,843,441),controls).name=='officer'
