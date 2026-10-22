@@ -82,3 +82,23 @@ def test_frozen_backup_check_distinguishes_initial_snapshot_from_completed_shift
     initial.write_bytes(b'truncated SQLite')
     with pytest.raises(sqlite3.DatabaseError):
         verify_backup_snapshots(*args)
+
+
+def test_native_field_selection_uses_recorded_small_windows_desktop_geometry(monkeypatch):
+    from types import SimpleNamespace
+    import pytest
+    tools = Path(__file__).resolve().parents[2] / 'tools'
+    monkeypatch.syspath_prepend(str(tools))
+    from exercise_windows_exe import select_labeled_edit
+    def rect(left, top, right, bottom): return SimpleNamespace(left=left, top=top, right=right, bottom=bottom)
+    def edit(name, box, enabled=True):
+        return SimpleNamespace(name=name, rectangle=lambda: box, is_visible=lambda: True, is_enabled=lambda: enabled)
+    # Actual rectangles from run 39014785312: several 48px fields overlap when
+    # the runner desktop compresses grid rows to 18px. A shared center is unsafe.
+    fields = [edit('date', rect(543,343,684,391)), edit('protocol', rect(543,361,684,409)), edit('paravolo', rect(543,379,684,427),False), edit('surname', rect(543,396,684,444)), edit('name', rect(543,414,684,462)), edit('birth', rect(543,432,684,480)), edit('right_column', rect(855,396,998,444))]
+    assert select_labeled_edit(rect(386,396,531,406), fields).name == 'surname'
+    assert select_labeled_edit(rect(386,414,531,424), fields).name == 'name'
+    with pytest.raises(AssertionError, match='Missing editable'):
+        select_labeled_edit(rect(386,200,531,210), fields)
+    with pytest.raises(AssertionError, match='Ambiguous'):
+        select_labeled_edit(rect(386,396,531,406), fields + [fields[3]])

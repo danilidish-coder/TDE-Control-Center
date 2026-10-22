@@ -27,8 +27,27 @@ def wait_for(operation, timeout=45):
     raise TimeoutError(f'Readiness condition failed: {last}')
 
 
-def verify_backup_snapshots(folder, start, end):
+def select_labeled_edit(rectangle, controls):
+    """Match the grid row top even when a small desktop compresses the rows."""
+    y = (rectangle.top + rectangle.bottom) // 2
+    candidates = [c for c in controls if c.is_visible() and c.is_enabled()
+                  and c.rectangle().left >= rectangle.right
+                  and c.rectangle().top <= y <= c.rectangle().bottom]
+    if not candidates:
+        raise AssertionError('Missing editable field beside the visible label')
+    def score(control):
+        field = control.rectangle()
+        return (field.left - rectangle.right, abs(field.top - rectangle.top))
+    candidates.sort(key=score)
+    if len(candidates) > 1 and score(candidates[0]) == score(candidates[1]):
+        raise AssertionError('Ambiguous editable fields beside the visible label')
+    return candidates[0]
+
+
+def verify_backup_snapshots(folder, start, end, expected_fines=None):
     """Check both the original empty startup backup and the completed shift."""
+    if expected_fines is None:
+        expected_fines = [('PHASE2-SYNTHETIC', 'TEST', 600)]
     initial = closed = 0
     for backup in folder.glob('*.sqlite3'):
         connection = sqlite3.connect(backup)
@@ -39,7 +58,7 @@ def verify_backup_snapshots(folder, start, end):
             fines = connection.execute('SELECT p.surname,p.given_name,f.amount FROM fines f JOIN people p ON p.id=f.person_id ORDER BY f.id').fetchall()
             if not shifts and not fines:
                 initial += 1
-            elif shifts == [(start, end, 'CLOSED')] and fines == [('PHASE2-SYNTHETIC', 'TEST', 600)]:
+            elif shifts == [(start, end, 'CLOSED')] and fines == expected_fines:
                 closed += 1
             else:
                 raise AssertionError('Unexpected frozen backup shift or fine contents')
@@ -53,6 +72,18 @@ def verify_backup_snapshots(folder, start, end):
 def exercise(executable, output):
     if os.name != 'nt': raise RuntimeError('This check requires a real Windows desktop')
     import psutil
+    import win32api
+    import runpy
+    identity = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'source/app/version.py'))
+    version = identity['APP_VERSION']
+    if executable.name != identity['EXE_NAME'] + '.exe':
+        raise AssertionError('Candidate executable filename does not match source identity')
+    resource = win32api.GetFileVersionInfo(str(executable), chr(92))
+    ms, ls = resource['FileVersionMS'], resource['FileVersionLS']
+    actual = (ms >> 16, ms & 0xffff, ls >> 16, ls & 0xffff)
+    product = (resource['ProductVersionMS'] >> 16, resource['ProductVersionMS'] & 0xffff, resource['ProductVersionLS'] >> 16, resource['ProductVersionLS'] & 0xffff)
+    if actual != identity['WINDOWS_VERSION'] or product != actual:
+        raise AssertionError(f'Native Windows file version mismatch: {actual}')
     from pywinauto import Desktop
     from openpyxl import load_workbook
     output.mkdir(parents=True, exist_ok=True)
@@ -100,6 +131,14 @@ def exercise(executable, output):
                         continue
             window = wait_for(main_window)
             window.set_focus()
+            if f'v{version}' not in window.window_text():
+                raise AssertionError('Frozen GUI title does not match candidate version')
+            labels = [c.window_text() for c in window.descendants(control_type='Text')]
+            if f'ΕΚΔΟΣΗ {version}' not in labels:
+                raise AssertionError('Frozen GUI version label missing or stale')
+            report['version'] = version
+            report['windows_file_version'] = list(actual)
+            report['steps'].append('native Windows version resource, filename and GUI version verified')
             wait_for(lambda: database.exists() and query('SELECT COUNT(*) FROM shifts') == [(0,)])
             report['steps'].append('native window and fresh SQLite initialized')
             window.capture_as_image().save(str(output / 'startup.png'))
@@ -120,14 +159,7 @@ def exercise(executable, output):
                 if len(labels) != 1:
                     raise AssertionError(f'Expected one field label {label!r}, got {len(labels)}')
                 rectangle = labels[0].rectangle()
-                y = (rectangle.top + rectangle.bottom) // 2
-                candidates = [c for c in window.descendants(control_type='Edit')
-                              if c.is_visible() and c.is_enabled()
-                              and c.rectangle().left >= rectangle.right
-                              and c.rectangle().top <= y <= c.rectangle().bottom]
-                if not candidates:
-                    raise AssertionError(f'Missing editable field beside {label!r}')
-                min(candidates, key=lambda c: c.rectangle().left).set_edit_text(value)
+                select_labeled_edit(rectangle, window.descendants(control_type='Edit')).set_edit_text(value)
             button(window, 'ΚΑΤΑΧΩΡΙΣΗ')
             confirmation = wait_for(lambda: dialog_window('Επιβεβαίωση'))
             yes = [b for b in confirmation.descendants(control_type='Button')
@@ -141,8 +173,35 @@ def exercise(executable, output):
             if len(buttons) != 1:
                 raise AssertionError('Missing successful fine-entry acknowledgement')
             buttons[0].click_input()
-            wait_for(lambda: query('SELECT COUNT(*) FROM fines') == [(1,)])
+            wait_for(lambda: query("SELECT p.surname,p.given_name,f.amount,COALESCE(f.imposition_protocol,'') FROM fines f JOIN people p ON p.id=f.person_id") == [('PHASE2-SYNTHETIC', 'TEST', 600, '')])
             report['steps'].append('synthetic fine entered and confirmed through frozen native UI')
+            labels = [c for c in window.descendants(control_type='Text')
+                      if c.is_visible() and c.window_text() == 'ΤΥΠΟΣ ΠΡΑΞΗΣ']
+            if len(labels) != 1: raise AssertionError('Missing operation type label')
+            combo = select_labeled_edit(labels[0].rectangle(), window.descendants(control_type='ComboBox'))
+            combo.set_focus()
+            combo.type_keys('{HOME}{DOWN}{ENTER}')
+            for label, value in [('ΕΠΩΝΥΜΟ', 'FIELD-EFORIA'), ('ΟΝΟΜΑ', 'TEST'),
+                                 ('ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ', 'ΕΦΟΡΙΑ'), ('ΑΣΤΥΝΟΜΙΚΟΣ / ΑΡΜΟΔΙΟΣ', 'PHASE1 VALIDATION')]:
+                matches = [c for c in window.descendants(control_type='Text')
+                           if c.is_visible() and c.window_text() == label]
+                if len(matches) != 1: raise AssertionError(f'Missing payment field {label}')
+                select_labeled_edit(matches[0].rectangle(), window.descendants(control_type='Edit')).set_edit_text(value)
+            button(window, 'ΚΑΤΑΧΩΡΙΣΗ')
+            confirmation = wait_for(lambda: dialog_window('Επιβεβαίωση'))
+            yes = [b for b in confirmation.descendants(control_type='Button')
+                   if b.window_text().replace('&', '').lower() in ('yes', 'ναι')]
+            if len(yes) != 1: raise AssertionError('Missing payment confirmation')
+            yes[0].click_input()
+            completed = wait_for(lambda: dialog_window('Ολοκληρώθηκε'))
+            acknowledgements = [b for b in completed.descendants(control_type='Button')
+                                if b.is_visible() and b.window_text().replace('&', '').lower() in ('ok', 'εντάξει')]
+            if len(acknowledgements) != 1: raise AssertionError('Missing payment acknowledgement')
+            acknowledgements[0].click_input()
+            wait_for(lambda: query("SELECT operation_type,collection_method,amount FROM fines ORDER BY id") == [('IMPOSITION', '', 600), ('PAYMENT', 'ΕΦΟΡΙΑ', 600)])
+            if query('SELECT COUNT(*) FROM receipts') != [(1,)]: raise AssertionError('Payment receipt not synchronized')
+            report['steps'].append('EFORIA payment entered through frozen UI and linked receipt verified')
+
             for label in ['ΑΡΝΗΣΕΙΣ', 'ΗΜΕΡΗΣΙΑ ΔΡΑΣΤΗΡΙΟΤΗΤΑ', 'ΠΕΡΙΟΔΙΚΑ', 'ΑΡΧΕΙΟ - ΑΝΑΖΗΤΗΣΗ ΠΡΟΣΩΠΟΥ', 'ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ', 'ΠΡΟΣΤΙΜΑ']:
                 button(window, label)
             report['steps'].append('all six navigation buttons exercised')
@@ -170,6 +229,12 @@ def exercise(executable, output):
             for timestamp in (start, end):
                 if datetime.fromisoformat(timestamp).strftime('%d/%m/%Y %H:%M') not in book['Ημερήσια Δραστηριότητα']['A7'].value:
                     raise AssertionError('Frozen Excel report did not use recorded shift times')
+            sheet = book['Ημερήσια Δραστηριότητα']
+            if (sheet['D14'].value, sheet['D15'].value, sheet['D19'].value, sheet['D21'].value) != (1, 0, 1, 0):
+                raise AssertionError('Frozen EFORIA classification or daily total incorrect')
+            closure = sheet['C50'].value
+            if 'Η εφαρμογή έκλεισε' not in closure or 'υπογράφηκε ηλεκτρονικά' in closure:
+                raise AssertionError('Frozen Excel closure wording is incorrect')
             book.close()
             documents = list((target.parent / '.tde_runtime' / 'archive').rglob('*.docx'))
             if not documents:
@@ -187,16 +252,27 @@ def exercise(executable, output):
                         for timestamp in (start, end):
                             if datetime.fromisoformat(timestamp).strftime('%H:%M') not in text:
                                 raise AssertionError('Frozen Word report did not use recorded shift times')
+                        if 'Η εφαρμογή έκλεισε' not in text or 'υπογράφηκε ηλεκτρονικά' in text:
+                            raise AssertionError('Frozen Word closure wording is incorrect')
                         if 'ΕΝΕΡΓΗ ΒΑΡΔΙΑ' in text:
                             raise AssertionError('Closed frozen report still marked active')
             if not found_fine:
                 raise AssertionError('Synthetic fine missing from frozen DOCX')
-            report['backups'] = verify_backup_snapshots(target.parent / '.tde_runtime' / 'backup', start, end)
+            report['backups'] = verify_backup_snapshots(target.parent / '.tde_runtime' / 'backup', start, end, [('PHASE2-SYNTHETIC', 'TEST', 600), ('FIELD-EFORIA', 'TEST', 600)])
             report['steps'].append('frozen DOCX, Excel recorded times and SQLite backup contents verified')
             if query('PRAGMA integrity_check') != [('ok',)] or query('PRAGMA foreign_key_check'):
                 raise AssertionError('SQLite integrity failure')
             wait_for(lambda: query('SELECT COUNT(*) FROM pending_jobs WHERE resolved_at IS NULL') == [(0,)])
             report['steps'].append('shift closed, daily XLSX generated, SQLite integrity and pending jobs verified')
+            stored = query('SELECT started_at,ended_at,status FROM shifts')
+            window.close()
+            process.wait(timeout=25)
+            process = subprocess.Popen([str(target)], cwd=target.parent, env=environment)
+            window = wait_for(main_window)
+            wait_for(lambda: query('SELECT started_at,ended_at,status FROM shifts') == stored)
+            if query('SELECT COUNT(*) FROM fines') != [(2,)] or query('SELECT COUNT(*) FROM receipts') != [(1,)]:
+                raise AssertionError('Frozen restart lost stored acts')
+            report['steps'].append('frozen executable restarted with stable closed-shift times and both acts')
             report['status'] = 'passed'
         except Exception as exc:
             report['error'] = f'{type(exc).__name__}: {exc}'

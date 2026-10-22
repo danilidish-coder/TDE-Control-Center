@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 
 REF = os.environ.get('VALIDATION_EVIDENCE_REF', 'refs/heads/validation/control-center-modular-phase1')
-if REF not in ('refs/heads/validation/control-center-modular-phase1', 'refs/heads/validation/control-center-phase2'):
+if REF not in ('refs/heads/validation/control-center-modular-phase1', 'refs/heads/validation/control-center-phase2', 'refs/heads/validation/control-center-field-corrections-20261022'):
     raise ValueError('Only isolated validation evidence refs are permitted')
 
 
