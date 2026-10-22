@@ -16,13 +16,10 @@ def payment_category(method: str | None) -> str | None:
 
 def protocol_category_formulas(rows, first_row: int) -> tuple[dict[str, str], bool]:
     """Keep live amount formulas, raw settlement fields, and the existing columns."""
-    indices = {key: [] for key in _ALIASES}
-    unknown = False
-    for offset, row in enumerate(rows):
-        category = payment_category(row.get("payment_type"))
-        if category is None:
-            unknown = True
-        else:
-            indices[category].append(f"C{first_row + offset}")
-    return {key: "=SUM(" + ",".join(cells) + ")" if cells else "=0"
-            for key, cells in indices.items()}, unknown
+    rows = list(rows)
+    last_row = max(first_row, first_row + len(rows) - 1)
+    # A hidden metadata column keeps formulas bounded for large lists. It does
+    # not add a financial field or alter any of the six printed columns.
+    formulas = {kind: f'=SUMIF(G{first_row}:G{last_row},"{kind}",C{first_row}:C{last_row})'
+                for kind in _ALIASES}
+    return formulas, any(payment_category(row.get("payment_type")) is None for row in rows)

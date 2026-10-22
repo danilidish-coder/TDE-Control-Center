@@ -79,9 +79,12 @@ def test_all_manual_adjustments_and_workbook_totals(tmp_path,monkeypatch):
 
 def test_protocol_classification_retains_amount_formulas_and_unknown_grand_total():
     formulas,unknown=protocol_category_formulas([{'payment_type':m} for m,_ in METHODS],12)
-    assert formulas=={'payment':'=SUM(C12,C13,C14,C15)','eparavolo':'=SUM(C16,C17,C18)','detypa':'=SUM(C19,C20,C21)'}
+    assert formulas=={kind:f'=SUMIF(G12:G24,"{kind}",C12:C24)' for kind in ('payment','eparavolo','detypa')}
     assert unknown
-    assert protocol_category_formulas([],12)==({'payment':'=0','eparavolo':'=0','detypa':'=0'},False)
+    empty,unknown=protocol_category_formulas([],12)
+    assert not unknown and all('G12:G12' in f for f in empty.values())
+    large,_=protocol_category_formulas([{'payment_type':'CASH'}]*10000,12)
+    assert all(len(f)<80 and 'C12:C10011' in f for f in large.values())
 
 
 def test_every_refusal_category_correction_deletion_and_h_totals(tmp_path,monkeypatch):

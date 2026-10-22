@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.shared.payments import protocol_category_formulas
+from app.shared.payments import payment_category, protocol_category_formulas
 
 import platform
 import shutil
@@ -120,7 +120,8 @@ class ProtocolWorkbookWriter:
             _set_shape_text(ws, "TextBox 3", collector_sig)
             _set_shape_text(ws, "TextBox 5", receiver_sig)
 
-            ws.Range(f"A{first_row}:F{summary-1}").ClearContents()
+            ws.Range(f"A{first_row}:G{summary-1}").ClearContents()
+            ws.Columns("G").Hidden = True
             for idx, row in enumerate(data, start=1):
                 r = first_row + idx - 1
                 method = str(row.get("payment_type") or "").strip() or "EISPRAXI"
@@ -130,6 +131,7 @@ class ProtocolWorkbookWriter:
                 ws.Cells(r, 4).Value = method
                 ws.Cells(r, 5).Value = str(row.get("measure") or "")
                 ws.Cells(r, 6).Value = str(row.get("paravolo") or "")
+                ws.Cells(r, 7).Value = payment_category(row.get("payment_type")) or "unclassified"
 
             formula_last = max(first_row, last_data_row)
             ws.Cells(summary, 2).Value = "ΣΥΝ ΧΡΗΜ ΠΟΣΟ"
