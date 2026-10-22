@@ -1,0 +1,576 @@
+{
+  "native_windows": [
+    {
+      "title": "ΕΛΛΗΝΙΚΗ ΑΣΤΥΝΟΜΙΑ — Τ.Δ.Ε. ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ — v1.0.15",
+      "handle": 262164,
+      "pid": 8464,
+      "class": "Qt683QWindowIcon"
+    },
+    {
+      "title": "",
+      "handle": 327748,
+      "pid": 8464,
+      "class": "Qt683ScreenChangeObserverWindow"
+    },
+    {
+      "title": "M",
+      "handle": 328166,
+      "pid": 8464,
+      "class": "MSCTFIME UI"
+    },
+    {
+      "title": "Default IME",
+      "handle": 393586,
+      "pid": 8464,
+      "class": "IME"
+    }
+  ],
+  "uia_controls": [
+    {
+      "title": "",
+      "role": "TitleBar",
+      "visible": true,
+      "rectangle": "(L16, T-5, R1024, B23)"
+    },
+    {
+      "title": "System",
+      "role": "MenuBar",
+      "visible": true,
+      "rectangle": "(L0, T0, R22, B22)"
+    },
+    {
+      "title": "System",
+      "role": "MenuItem",
+      "visible": true,
+      "rectangle": "(L0, T0, R22, B22)"
+    },
+    {
+      "title": "Minimize",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L883, T0, R930, B22)"
+    },
+    {
+      "title": "Restore",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L930, T0, R976, B22)"
+    },
+    {
+      "title": "Close",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L976, T0, R1024, B22)"
+    },
+    {
+      "title": "",
+      "role": "Group",
+      "visible": true,
+      "rectangle": "(L0, T23, R1024, B720)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L7, T30, R1017, B178)"
+    },
+    {
+      "title": "",
+      "role": "Image",
+      "visible": true,
+      "rectangle": "(L32, T47, R170, B185)"
+    },
+    {
+      "title": "ΔΙΕΥΘΥΝΣΗ ΑΣΤΥΝΟΜΙΑΣ ΦΛΩΡΙΝΑΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L194, T47, R544, B84)"
+    },
+    {
+      "title": "ΤΜΗΜΑ ΔΙΑΒΑΤΗΡΙΑΚΟΥ ΕΛΕΓΧΟΥ ΚΡΥΣΤΑΛΛΟΠΗΓΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L194, T87, R544, B124)"
+    },
+    {
+      "title": "ΚΕΝΤΡΟ ΕΛΕΓΧΟΥ ΑΞΙΩΜΑΤΙΚΟΥ ΥΠΗΡΕΣΙΑΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L194, T127, R544, B161)"
+    },
+    {
+      "title": "",
+      "role": "Image",
+      "visible": true,
+      "rectangle": "(L550, T47, R725, B172)"
+    },
+    {
+      "title": "22/10/2026  19:20:52",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L731, T47, R867, B161)"
+    },
+    {
+      "title": "☀ ΦΩΤΕΙΝΟ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L873, T83, R992, B125)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L7, T186, R1017, B189)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L7, T197, R357, B713)"
+    },
+    {
+      "title": "● ΕΝΕΡΓΗ ΒΑΡΔΙΑ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L24, T214, R340, B246)"
+    },
+    {
+      "title": "TEST-RANK · 999999 · PHASE1 VALIDATION\nΈναρξη: 2026-10-22 19:20:04",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L24, T256, R340, B287)"
+    },
+    {
+      "title": "ΕΝΑΡΞΗ ΒΑΡΔΙΑΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L24, T297, R340, B358)"
+    },
+    {
+      "title": "ΚΛΕΙΣΙΜΟ ΒΑΡΔΙΑΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L24, T339, R340, B400)"
+    },
+    {
+      "title": "ΠΡΟΣΤΙΜΑ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T388, R340, B450)"
+    },
+    {
+      "title": "ΑΡΝΗΣΕΙΣ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T429, R340, B491)"
+    },
+    {
+      "title": "ΗΜΕΡΗΣΙΑ ΔΡΑΣΤΗΡΙΟΤΗΤΑ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T471, R340, B533)"
+    },
+    {
+      "title": "ΠΕΡΙΟΔΙΚΑ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T512, R340, B574)"
+    },
+    {
+      "title": "ΑΡΧΕΙΟ - ΑΝΑΖΗΤΗΣΗ ΠΡΟΣΩΠΟΥ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T554, R340, B616)"
+    },
+    {
+      "title": "ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ",
+      "role": "RadioButton",
+      "visible": true,
+      "rectangle": "(L24, T595, R340, B657)"
+    },
+    {
+      "title": "ΕΝΗΜΕΡΩΣΗ ΕΚΚΡΕΜΩΝ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L24, T636, R340, B697)"
+    },
+    {
+      "title": "ΕΚΔΟΣΗ 1.0.15",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L24, T677, R340, B695)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L367, T197, R1017, B713)"
+    },
+    {
+      "title": "",
+      "role": "Group",
+      "visible": true,
+      "rectangle": "(L367, T197, R1017, B713)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L367, T197, R1017, B296)"
+    },
+    {
+      "title": "ΠΡΟΣΤΙΜΑ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T216, R537, B277)"
+    },
+    {
+      "title": "ΠΡΟΒΟΛΗ - ΕΚΤΥΠΩΣΗ ΤΡΕΧΟΥΣΑΣ ΑΝΑΦΟΡΑΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L547, T216, R768, B277)"
+    },
+    {
+      "title": "ΑΡΧΕΙΟ ΑΝΑΦΟΡΩΝ ΠΡΟΣΤΙΜΩΝ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L778, T216, R998, B277)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L367, T306, R1017, B538)"
+    },
+    {
+      "title": "ΤΥΠΟΣ ΠΡΑΞΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T325, R531, B336)"
+    },
+    {
+      "title": "",
+      "role": "ComboBox",
+      "visible": true,
+      "rectangle": "(L543, T325, R684, B373)"
+    },
+    {
+      "title": "ΗΜΕΡΟΜΗΝΙΑ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T344, R531, B355)"
+    },
+    {
+      "title": "22/10/2026",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T344, R684, B392)"
+    },
+    {
+      "title": "ΑΡ. ΠΡΑΞΗΣ ΕΠΙΒΟΛΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T363, R531, B374)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T363, R684, B411)"
+    },
+    {
+      "title": "ΑΡΙΘΜΟΣ ΠΑΡΑΒΟΛΟΥ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T382, R531, B392)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T382, R684, B430)"
+    },
+    {
+      "title": "ΕΠΩΝΥΜΟ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T400, R531, B411)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T400, R684, B448)"
+    },
+    {
+      "title": "ΟΝΟΜΑ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T419, R531, B430)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T419, R684, B467)"
+    },
+    {
+      "title": "ΗΜ/ΝΙΑ ΓΕΝΝΗΣΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T438, R531, B448)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L543, T438, R684, B486)"
+    },
+    {
+      "title": "ΥΠΗΚΟΟΤΗΤΑ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T325, R843, B336)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L855, T325, R998, B373)"
+    },
+    {
+      "title": "ΑΡ. ΔΙΑΒΑΤΗΡΙΟΥ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T344, R843, B355)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L855, T344, R998, B392)"
+    },
+    {
+      "title": "ΑΡ. ΜΕΤΡΟΥ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T363, R843, B374)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L855, T363, R998, B411)"
+    },
+    {
+      "title": "ΧΡΗΜΑΤΙΚΟ ΠΟΣΟ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T382, R843, B392)"
+    },
+    {
+      "title": "",
+      "role": "ComboBox",
+      "visible": true,
+      "rectangle": "(L855, T382, R998, B430)"
+    },
+    {
+      "title": "ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T400, R843, B411)"
+    },
+    {
+      "title": "",
+      "role": "ComboBox",
+      "visible": true,
+      "rectangle": "(L855, T400, R998, B448)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L866, T406, R929, B442)"
+    },
+    {
+      "title": "ΑΡ. ΠΡΩΤΟΚΟΛΛΟΥ ΕΙΣΠΡΑΞΗΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T419, R843, B430)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L855, T419, R998, B467)"
+    },
+    {
+      "title": "ΑΣΤΥΝΟΜΙΚΟΣ / ΑΡΜΟΔΙΟΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L698, T438, R843, B448)"
+    },
+    {
+      "title": "",
+      "role": "Edit",
+      "visible": true,
+      "rectangle": "(L855, T438, R998, B486)"
+    },
+    {
+      "title": "ΚΑΘΑΡΙΣΜΟΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L748, T458, R871, B519)"
+    },
+    {
+      "title": "ΚΑΤΑΧΩΡΙΣΗ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L881, T458, R998, B519)"
+    },
+    {
+      "title": "",
+      "role": "Custom",
+      "visible": true,
+      "rectangle": "(L367, T548, R1017, B713)"
+    },
+    {
+      "title": "ΤΡΕΧΟΥΣΑ ΒΑΡΔΙΑ — ΚΑΤΑΧΩΡΙΣΕΙΣ",
+      "role": "Text",
+      "visible": true,
+      "rectangle": "(L386, T567, R502, B628)"
+    },
+    {
+      "title": "ΑΡΧΕΙΟ ΠΡΑΞΕΩΝ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L763, T567, R879, B628)"
+    },
+    {
+      "title": "ΑΝΑΝΕΩΣΗ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L889, T567, R998, B628)"
+    },
+    {
+      "title": "ΔΙΟΡΘΩΣΗ ΕΠΙΛΕΓΜΕΝΗΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L512, T567, R628, B628)"
+    },
+    {
+      "title": "ΔΙΑΓΡΑΦΗ ΕΠΙΛΕΓΜΕΝΗΣ",
+      "role": "Button",
+      "visible": true,
+      "rectangle": "(L638, T567, R753, B628)"
+    },
+    {
+      "title": "",
+      "role": "Table",
+      "visible": true,
+      "rectangle": "(L386, T638, R998, B694)"
+    },
+    {
+      "title": "",
+      "role": "Pane",
+      "visible": true,
+      "rectangle": "(L0, T0, R0, B0)"
+    },
+    {
+      "title": "Τύπος",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L419, T639, R485, B684)"
+    },
+    {
+      "title": "Ημερομηνία",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L485, T639, R593, B684)"
+    },
+    {
+      "title": "Επώνυμο",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L593, T639, R724, B684)"
+    },
+    {
+      "title": "Όνομα",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L724, T639, R795, B684)"
+    },
+    {
+      "title": "Ποσό",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L795, T639, R857, B684)"
+    },
+    {
+      "title": "Πρωτόκολλο",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L857, T639, R972, B684)"
+    },
+    {
+      "title": "Αστυνομικός / Αρμόδιος",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L972, T639, R1072, B684)"
+    },
+    {
+      "title": "1",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L387, T684, R419, B714)"
+    },
+    {
+      "title": "ΕΠΙΒΟΛΗ",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L419, T684, R484, B713)"
+    },
+    {
+      "title": "22/10/2026",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L485, T684, R592, B713)"
+    },
+    {
+      "title": "PHASE2-SYNTHETIC",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L593, T684, R723, B713)"
+    },
+    {
+      "title": "TEST",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L724, T684, R794, B713)"
+    },
+    {
+      "title": "600",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L795, T684, R856, B713)"
+    },
+    {
+      "title": "",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L857, T684, R971, B713)"
+    },
+    {
+      "title": "",
+      "role": "DataItem",
+      "visible": true,
+      "rectangle": "(L972, T684, R1071, B713)"
+    },
+    {
+      "title": "2",
+      "role": "Header",
+      "visible": true,
+      "rectangle": "(L387, T714, R419, B744)"
+    }
+  ]
+}
