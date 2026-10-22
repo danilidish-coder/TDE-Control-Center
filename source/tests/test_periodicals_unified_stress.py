@@ -113,7 +113,7 @@ def test_three_scan_series_never_share_future_archive_root(tmp_path):
     engine=UnifiedPeriodicalsEngine([_pkg(tmp_path/"packages")],rows)
     result=engine.prepare_next_package("P1",date(2026,10,4))
     assert len(result.prepared)==3
-    assert len({p.parents[2] for p in result.prepared})==3
+    assert {p.parent for p in result.prepared} == {scan/"2026"/"10. ΟΚΤΩΒΡΙΟΣ 2026"/"04-10-2026"}
 
 
 def test_cutoff_1000_rule_remains_unchanged():

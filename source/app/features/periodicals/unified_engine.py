@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from app.shared.documents.common import clean
+from app.core.textnorm import normalize_text
 from app.features.periodicals.engine import (
     PackageFile, PeriodicalsEngine, PreparationResult,
 )
@@ -48,38 +49,52 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         super().__init__(packages, files)
         self._normalize_definitions()
 
+    @staticmethod
+    def _scan_root(source: Path, root: Path) -> Path | None:
+        for candidate in (root, *root.parents, *source.parents):
+            if candidate.name.casefold() in {"1. scan folder reports", "scan folder"}:
+                return candidate
+        return None
+
+    @staticmethod
+    def _daily_root(root: Path) -> bool:
+        name = normalize_text(root.name).replace(" ", "")
+        return name in {"IMERISIAKINISI", "IMERHSIAKINISI", "HMERISIAKINISI"}
+
+    def _normalize_file(self, f: PackageFile) -> None:
+        source = Path(f.source_path) if clean(f.source_path) else Path(f.name)
+        root = Path(f.archive_root) if clean(f.archive_root) else _structured_root(source)
+        scan = self._scan_root(source, root) if _series_name(source.name or f.name) else None
+        f.archive_root = str(scan or root)
+        f.profile = PROFILE_UNIFIED
+        f.name_template = ""
+        f.folder_layout = "BAT_DAILY" if scan is not None or self._daily_root(root) else UNIFIED_LAYOUT
+
     def _normalize_definitions(self) -> None:
         for f in self.files:
-            source = Path(f.source_path) if clean(f.source_path) else Path(f.name)
-            root = Path(f.archive_root) if clean(f.archive_root) else _structured_root(source)
-            series = _series_name(source.name or f.name)
-            if series and root.name.casefold() == "1. scan folder reports".casefold():
-                root = root / series
-            f.archive_root = str(root)
-            f.profile = PROFILE_UNIFIED
-            f.name_template = ""
-            f.folder_layout = UNIFIED_LAYOUT
+            self._normalize_file(f)
 
     @staticmethod
     def _archive_root_for_new(source: Path) -> Path:
-        series = _series_name(source.name)
-        if series:
-            for ancestor in source.parents:
-                if ancestor.name.casefold() == "1. scan folder reports".casefold():
-                    return ancestor / series
-        return _structured_root(source)
+        scan = UnifiedPeriodicalsEngine._scan_root(source, source.parent) if _series_name(source.name) else None
+        return scan or _structured_root(source)
+
+    @staticmethod
+    def _destination(f: PackageFile, value: date) -> Path:
+        folder = destination_folder(f.archive_root, value)
+        return folder / value.strftime("%d-%m-%Y") if f.folder_layout == "BAT_DAILY" else folder
+
+    def file_identity(self, f: PackageFile) -> str:
+        root = clean(f.archive_root) or clean(f.source_path)
+        source = Path(f.source_path or f.name)
+        series = _series_name(source.name or f.name)
+        if series and self._scan_root(source, Path(root)) is not None:
+            return root.casefold() + "|" + series.casefold()
+        return root.casefold()
 
     def add_known_file_to_package(self, package_id: str, source_path: str) -> PackageFile:
         row = super().add_known_file_to_package(package_id, source_path)
-        source = Path(row.source_path) if clean(row.source_path) else Path(row.name)
-        root = Path(row.archive_root) if clean(row.archive_root) else _structured_root(source)
-        series = _series_name(source.name or row.name)
-        if series and root.name.casefold() == "1. scan folder reports".casefold():
-            root = root / series
-        row.archive_root = str(root)
-        row.profile = PROFILE_UNIFIED
-        row.name_template = ""
-        row.folder_layout = UNIFIED_LAYOUT
+        self._normalize_file(row)
         return row
 
     def add_new_file_to_package(self, package_id: str, source_path: str, initial_date: date | None = None) -> PackageFile:
@@ -100,7 +115,9 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         except ValueError:
             source_date = initial_date or date.today()
             target_name = _dated_name(source.name, source_date)
-        target_dir = destination_folder(root, source_date)
+        definition = PackageFile(package_id, source.name, str(source), archive_root=str(root))
+        self._normalize_file(definition)
+        target_dir = self._destination(definition, source_date)
         target_dir.mkdir(parents=True, exist_ok=True)
         target = target_dir / target_name
         if source.resolve() != target.resolve():
@@ -112,7 +129,7 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             package_id=package_id, name=target.name, source_path=str(target), active=True,
             profile=PROFILE_UNIFIED, name_template="", prepared_path=str(target),
             prepared_date=source_date.isoformat(), archive_root=str(root), status="ΕΤΟΙΜΟ",
-            folder_layout=UNIFIED_LAYOUT, managed_copy_path="",
+            folder_layout=definition.folder_layout, managed_copy_path="",
         )
         self.files.append(f)
         return f
@@ -122,7 +139,11 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         seen: set[str] = set()
 
         def add(path: Path) -> None:
-            if not path.is_file():
+            if not path.is_file() or path.name.startswith("~$"):
+                return
+            source = Path(f.source_path or f.name)
+            series = _series_name(source.name or f.name)
+            if series and self._scan_root(source, Path(f.archive_root)) is not None and _series_name(path.name) != series:
                 return
             try:
                 key = str(path.resolve()).casefold()
@@ -182,14 +203,14 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             return None
         _latest_date, latest = self.latest_existing_prepared(f, d)
         base = latest.name if latest is not None else (Path(f.source_path).name or f.name)
-        return destination_folder(f.archive_root, d) / _dated_name(base, d)
+        return self._destination(f, d) / _dated_name(base, d)
 
     def prepare_file(self, f: PackageFile, target_date: date):
         latest_date, source = self.latest_existing_prepared(f, target_date)
         if source is None:
             return None, False
         if latest_date is None:
-            target = destination_folder(f.archive_root or source.parent, target_date) / _dated_name(source.name, target_date)
+            target = self._destination(f, target_date) / _dated_name(source.name, target_date)
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.resolve() != target.resolve():
                 if target.exists():
@@ -202,11 +223,21 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             f.status = "ΕΤΟΙΜΟ"
             return target, True
         if latest_date >= target_date:
+            canonical = self._destination(f, target_date) / source.name
+            if f.folder_layout == "BAT_DAILY" and source.parent != canonical.parent:
+                canonical.parent.mkdir(parents=True, exist_ok=True)
+                created = not canonical.exists()
+                if created:
+                    shutil.copy2(source, canonical)
+                f.prepared_path = str(canonical)
+                f.prepared_date = target_date.isoformat()
+                f.status = "ΕΤΟΙΜΟ"
+                return canonical, created
             f.prepared_path = str(source)
             f.prepared_date = latest_date.isoformat()
             f.status = "ΕΤΟΙΜΟ"
             return source, False
-        target = destination_folder(f.archive_root, target_date) / replace_filename_date(source.name, target_date)
+        target = self._destination(f, target_date) / replace_filename_date(source.name, target_date)
         target.parent.mkdir(parents=True, exist_ok=True)
         if target.exists():
             created = False
@@ -221,11 +252,19 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
     def prepare_next_package(self, package_id: str, allowed_date: date) -> PreparationResult:
         target = self.package_next_prepared_date(package_id, allowed_date)
         if target > allowed_date:
-            return PreparationResult(package_id, target, [], [], [], already_current=True)
+            needs_daily_layout = any(
+                f.folder_layout == "BAT_DAILY" and latest is not None
+                and latest.parent != self._destination(f, allowed_date)
+                for f in self.package_files(package_id)
+                for _day, latest in [self.latest_existing_prepared(f, allowed_date)]
+            )
+            if not needs_daily_layout:
+                return PreparationResult(package_id, target, [], [], [], already_current=True)
+            target = allowed_date
         prepared, skipped, failed = [], [], []
         seen: set[str] = set()
         for f in self.package_files(package_id):
-            key = (clean(f.archive_root) or clean(f.source_path)).casefold()
+            key = self.file_identity(f)
             if key and key in seen:
                 continue
             if key:

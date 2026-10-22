@@ -91,17 +91,21 @@ class PeriodicalsService:
     def prepare_all_for_date(self, target_date: date) -> dict[str, list[str]]:
         engine, data, path = self.load()
         result: dict[str, list[str]] = {}
-        processed: set[str] = set()
+        processed: dict[str, Path] = {}
         for pkg in engine.active_packages():
             paths: list[str] = []
             for f in engine.package_files(pkg.id):
-                key = (clean(f.archive_root) or clean(f.source_path)).upper()
+                key = engine.file_identity(f)
                 if key and key in processed:
+                    out = processed[key]
+                    f.prepared_path = str(out)
+                    f.prepared_date = target_date.isoformat()
+                    f.status = "ΕΤΟΙΜΟ"
+                    paths.append(str(out))
                     continue
-                if key:
-                    processed.add(key)
                 out, _created = engine.prepare_file(f, target_date)
                 if out is not None:
+                    processed[key] = out
                     paths.append(str(out))
             result[pkg.id] = paths
         self.save(engine, data, path)

@@ -4,6 +4,7 @@ import shutil
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
+from app.core.textnorm import normalize_text
 
 GREEK_MONTHS={1:"ΙΑΝΟΥΑΡΙΟΣ",2:"ΦΕΒΡΟΥΑΡΙΟΣ",3:"ΜΑΡΤΙΟΣ",4:"ΑΠΡΙΛΙΟΣ",5:"ΜΑΙΟΣ",6:"ΙΟΥΝΙΟΣ",7:"ΙΟΥΛΙΟΣ",8:"ΑΥΓΟΥΣΤΟΣ",9:"ΣΕΠΤΕΜΒΡΙΟΣ",10:"ΟΚΤΩΒΡΙΟΣ",11:"ΝΟΕΜΒΡΙΟΣ",12:"ΔΕΚΕΜΒΡΙΟΣ"}
 
@@ -121,9 +122,11 @@ SERIES_FOLDERS=(
 )
 
 def series_folder_for_filename(filename:str)->str:
-    folded=filename.casefold()
+    folded=normalize_text(filename)
+    if folded.startswith("NEA PROINI ANAFOR"):
+        return SERIES_FOLDERS[1][0]
     for folder,prefix,required in SERIES_FOLDERS:
-        if folded.startswith(prefix.casefold()) and (not required or required.casefold() in folded):
+        if folded.startswith(normalize_text(prefix)) and (not required or normalize_text(required) in folded):
             return folder
     raise ValueError(f"Το αρχείο δεν αντιστοιχεί σε γνωστή σειρά: {filename}")
 

@@ -42,11 +42,11 @@ def test_old_scan_daily_seed_stays_but_next_goes_to_own_series(tmp_path):
     row = PackageFile("P1", source.name, str(source), True, PROFILE_DAILY_FOLDER,
                       "template", "", "", str(scan), "", "BAT_DAILY", "")
     engine = UnifiedPeriodicalsEngine([_pkg(tmp_path / "packages")], [row])
-    expected_root = scan / "ΑΝΑΦΟΡΕΣ ΑΞ.ΥΠ."
+    expected_root = scan  # Field correction: shared daily folder, not series folders.
     assert Path(row.archive_root) == expected_root
 
     result = engine.prepare_next_package("P1", date(2026, 10, 4))
-    out = expected_root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "ΑΝΑΦΟΡΕΣ 04-10-2026 ΑΞ.ΥΠ..docx"
+    out = expected_root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "04-10-2026" / "ΑΝΑΦΟΡΕΣ 04-10-2026 ΑΞ.ΥΠ..docx"
     assert out in result.prepared
     assert out.read_bytes() == b"seed"
     assert source.exists()
@@ -68,11 +68,9 @@ def test_three_scan_periodicals_become_three_independent_roots(tmp_path):
         rows.append(PackageFile("P1", name, str(source), True, PROFILE_DAILY_FOLDER,
                                 "", "", "", str(scan), "", "BAT_DAILY", ""))
     engine = UnifiedPeriodicalsEngine([_pkg(tmp_path / "packages")], rows)
-    assert {Path(row.archive_root).name for row in rows} == {
-        "ΑΝΑΦΟΡΕΣ ΑΞ.ΥΠ.",
-        "ΝΕΑ ΠΡΩΙΝΗ ΑΝΑΦΟΡΕΣ Γ.Α.",
-        "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ",
-    }
+    # The user explicitly restored one shared archive root and a daily folder.
+    assert {Path(row.archive_root) for row in rows} == {scan}
+    assert {row.folder_layout for row in rows} == {"BAT_DAILY"}
     result = engine.prepare_next_package("P1", date(2026, 10, 4))
     assert len(result.prepared) == 3
 
@@ -97,13 +95,13 @@ def test_new_undated_orphan_gets_first_date_once_then_copies_latest(tmp_path):
     source.write_bytes(b"day1")
     engine = UnifiedPeriodicalsEngine([_pkg(tmp_path / "packages")], [])
     row = engine.add_new_file_to_package("P1", str(source), date(2026, 10, 3))
-    first = root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ 03-10-2026.xlsx"
+    first = root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "03-10-2026" / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ 03-10-2026.xlsx"
     assert Path(row.source_path) == first
     assert first.read_bytes() == b"day1"
 
     first.write_bytes(b"user-changed")
     result = engine.prepare_next_package("P1", date(2026, 10, 4))
-    second = root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ 04-10-2026.xlsx"
+    second = root / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "04-10-2026" / "ΗΜΕΡΗΣΙΑ ΚΙΝΗΣΗ 04-10-2026.xlsx"
     assert result.prepared == [second]
     assert second.read_bytes() == b"user-changed"
 
