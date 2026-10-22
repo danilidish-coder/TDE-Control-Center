@@ -311,16 +311,11 @@ class PeriodicalsEngine:
         if package_id not in self.packages:
             raise KeyError(package_id)
         key = clean(source_path).casefold()
-        folder = None
-        pkg = self.packages[package_id]
-        if clean(pkg.root) and clean(pkg.name):
-            folder = Path(pkg.root) / pkg.name
         found = False
         for f in self.package_files(package_id, active_only=False):
             if clean(f.source_path).casefold() == key and f.active:
                 found = True
-                if folder is not None:
-                    self._remove_managed_copy(f, folder)
+                # Deactivate the package membership, retain edited/unsent copies.
                 f.active = False
         if not found:
             raise ValueError("Το περιοδικό δεν είναι ενεργό στο συγκεκριμένο πακέτο.")

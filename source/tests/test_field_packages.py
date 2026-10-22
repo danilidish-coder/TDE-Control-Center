@@ -94,3 +94,14 @@ def test_new_profile_keeps_legacy_package_constructor_compatible(tmp_path,monkey
     assert Package(**data['packages'][0]).id=='P'
     loaded,_,_=service.load()
     assert loaded.package_cycles=={'P':'2026-10-22'}
+
+
+def test_removing_membership_retains_legacy_edited_unsent_working_file(tmp_path):
+    source=tmp_path/'archive'/'REPORT 21-10-2026.xlsx';source.parent.mkdir();source.write_bytes(b'SOURCE')
+    row=PackageFile('P',source.name,str(source),archive_root=str(source.parent))
+    engine=UnifiedPeriodicalsEngine([Package('P','PACKAGE',root=str(tmp_path/'packages'))],[row])
+    folder=engine.sync_package_folder('P',date(2026,10,22))
+    copy=folder/source.name;copy.write_bytes(b'EDITED AND UNSENT LEGACY PACKAGE')
+    engine.remove_file_from_package('P',str(source))
+    assert not row.active and copy.read_bytes()==b'EDITED AND UNSENT LEGACY PACKAGE'
+    assert source.read_bytes()==b'SOURCE'

@@ -2,7 +2,8 @@
   "app/features/periodicals/engine.py": {
     "changed": [
       "PeriodicalsEngine.__init__",
-      "PeriodicalsEngine.sync_package_folder"
+      "PeriodicalsEngine.sync_package_folder",
+      "PeriodicalsEngine.remove_file_from_package"
     ],
     "introduced": [
       "PeriodicalsEngine._copy_working_document"
