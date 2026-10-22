@@ -1,0 +1,159 @@
+{
+  "approved_base": "557558b5d25695ecf93c9e50be99f0c67afe7859",
+  "application_source_commit": "f7c0dc7ed42879cd5619cd94d0eac29412a13c17",
+  "validator_source_commit": "71e5b56bcbfd1f8db7af46032697a69862e12a8d",
+  "branch": "fix/phase2-field-corrections-20261022",
+  "linux": {
+    "source_commit": "71e5b56bcbfd1f8db7af46032697a69862e12a8d",
+    "comparison": {
+      "baseline_tests": 227,
+      "current_tests": 290,
+      "historical_failures": [],
+      "missing": [],
+      "changed_outcomes": {},
+      "new_tests_passed": 63,
+      "new_tests_not_passed": {},
+      "compatible": true
+    }
+  },
+  "windows_suites": {
+    "baseline-windows.xml": {
+      "tests": 227,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "build-regressions-windows.xml": {
+      "tests": 289,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "candidate-windows.xml": {
+      "tests": 290,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native-driver-focused-windows.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lock-focused-1-windows.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lock-focused-2-windows.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lock-focused-3-windows.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "windows_comparison": {
+    "baseline_tests": 227,
+    "current_tests": 290,
+    "historical_failures": [],
+    "missing": [],
+    "changed_outcomes": {},
+    "new_tests_passed": 63,
+    "new_tests_not_passed": {},
+    "compatible": true,
+    "confirmed_baseline_windows_lock_race": [],
+    "unexpected_outcome_changes": {},
+    "unexpected_baseline_failures": {},
+    "candidate_failures_or_skips": {}
+  },
+  "build_manifest": {
+    "source_commit": "f7c0dc7ed42879cd5619cd94d0eac29412a13c17",
+    "approved_base": "557558b5d25695ecf93c9e50be99f0c67afe7859",
+    "version": "1.0.15",
+    "exe": "TDE_CONTROL_CENTER_v1.0.15_CANDIDATE.exe",
+    "bytes": 65187437,
+    "sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+    "run_url": "https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39838307544",
+    "production_release": false
+  },
+  "recheck_manifest": {
+    "application_source_commit": "f7c0dc7ed42879cd5619cd94d0eac29412a13c17",
+    "validator_source_commit": "71e5b56bcbfd1f8db7af46032697a69862e12a8d",
+    "exe_sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+    "build_run": 39838307544,
+    "application_inputs_unchanged": true,
+    "new_build": false,
+    "production_release": false
+  },
+  "native_functional_report": {
+    "status": "passed",
+    "exe_sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+    "steps": [
+      "native Windows version resource, filename and GUI version verified",
+      "native window and fresh SQLite initialized",
+      "shift created through native UI and verified in SQLite",
+      "synthetic fine entered and confirmed through frozen native UI",
+      "EFORIA payment entered through frozen UI and linked receipt verified",
+      "all six navigation buttons exercised",
+      "frozen DOCX, Excel recorded times and SQLite backup contents verified",
+      "shift closed, daily XLSX generated, SQLite integrity and pending jobs verified",
+      "frozen executable restarted with stable closed-shift times and both acts"
+    ],
+    "version": "1.0.15",
+    "windows_file_version": [
+      1,
+      0,
+      15,
+      0
+    ],
+    "payment_operation_selection": "UIA named combo selection",
+    "payment_rows": [
+      [
+        "IMPOSITION",
+        "",
+        600,
+        "",
+        ""
+      ],
+      [
+        "PAYMENT",
+        "ΕΦΟΡΙΑ",
+        600,
+        "",
+        ""
+      ]
+    ],
+    "backups": {
+      "initial_snapshots": 1,
+      "closed_shift_snapshots": 1
+    }
+  },
+  "validation_run": {
+    "source_commit": "71e5b56bcbfd1f8db7af46032697a69862e12a8d",
+    "job_status": "success",
+    "run_url": "https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39840470655",
+    "production_release": false
+  },
+  "validation_evidence_commit": "f75a7bb01742083f56477911bff2b5b46ca614f1",
+  "production_release": false,
+  "rollback_exe_sha256": "f782edc38cb7881a0e6862bc00aec49e111135c572789c02970d3877c77b6f02",
+  "limits": [
+    "Microsoft Office visual/print verification not executed",
+    "Physical service station/SMB profile not available in cloud",
+    "No automatic purge of old complete packages without proof of delivery"
+  ],
+  "remaining_obsolete_run": {
+    "run_url": "https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39840227755",
+    "observed_state": "overall in_progress; job had no started steps",
+    "used_for_certification": false,
+    "cancel_attempt": "gh run cancel failed: api.github.com Forbidden; CONNECT 403 via cloud proxy"
+  }
+}

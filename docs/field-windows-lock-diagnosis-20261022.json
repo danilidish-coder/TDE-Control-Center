@@ -1,0 +1,17 @@
+{
+  "approved_557558b": {
+    "entered_after_owned_mkdir": false,
+    "mkdir_attempts": 1,
+    "error": "simulated recorded delete-pending WinError 5",
+    "lock_left_behind": false
+  },
+  "candidate": {
+    "entered_after_owned_mkdir": true,
+    "mkdir_attempts": 2,
+    "error": null,
+    "lock_left_behind": false
+  },
+  "recorded_windows_run": "https://github.com/danilidish-coder/TDE-Control-Center/actions/runs/39836215221",
+  "failed_test": "test_concurrency::test_serialized_concurrent_writes",
+  "baseline_lock_identical_to_failed_source": true
+}
