@@ -117,3 +117,30 @@ def test_native_editable_combo_uses_recorded_inset_geometry_not_neighbor(monkeyp
     assert select_labeled_edit(rect(698,396,843,406),controls).name=='method'
     assert select_labeled_edit(rect(698,414,843,424),controls).name=='protocol'
     assert select_labeled_edit(rect(698,432,843,441),controls).name=='officer'
+
+
+def test_native_operation_is_explicitly_selected_and_verified_before_entry(monkeypatch):
+    from types import SimpleNamespace
+    import pytest
+    tools=Path(__file__).resolve().parents[2]/'tools'
+    monkeypatch.syspath_prepend(str(tools))
+    import exercise_windows_exe as driver
+    enabled=[False];calls=[]
+    def wait(operation,timeout=45):
+        if not operation():raise TimeoutError('operation did not enable method')
+        return True
+    monkeypatch.setattr(driver,'wait_for',wait)
+    field=SimpleNamespace(is_enabled=lambda:enabled[0])
+    def select(text):calls.append(text);enabled[0]=True
+    combo=SimpleNamespace(select=select)
+    assert driver.select_payment_operation(combo,field,lambda keys:pytest.fail('no fallback needed'))=='UIA named combo selection'
+    assert calls==['ΕΙΣΠΡΑΞΗ']
+    enabled[0]=False;calls.clear()
+    combo=SimpleNamespace(select=lambda text:None,click_input=lambda **kw:calls.append(kw))
+    def keys(value):
+        calls.append(value)
+        if value=='{END}{ENTER}':enabled[0]=True
+    assert driver.select_payment_operation(combo,field,keys).startswith('visible popup fallback')
+    assert calls==['{ESC}',{'coords':(5,5)},'{END}{ENTER}']
+    enabled[0]=False
+    with pytest.raises(TimeoutError):driver.select_payment_operation(combo,field,lambda keys:None)

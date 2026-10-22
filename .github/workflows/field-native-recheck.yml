@@ -1,0 +1,103 @@
+name: CONTROL CENTER exact candidate native recheck
+on:
+  push:
+    branches: [fix/phase2-field-corrections-20261022]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  PYTHONUTF8: '1'
+  VALIDATION_EVIDENCE_REF: refs/heads/validation/control-center-field-corrections-20261022
+concurrency:
+  group: control-center-field-native-recheck
+  cancel-in-progress: true
+jobs:
+  native-exact-binary:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[native-recheck]') }}
+    permissions:
+      contents: write
+      actions: read
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Record independent native validation run
+        env:
+          VALIDATION_JOB_STATUS: running
+        run: python tools/persist_validation_evidence.py
+      - name: Install unchanged application and validation dependencies
+        run: python -m pip install -r source/requirements.txt python-docx pytest pywinauto psutil pillow
+      - uses: actions/download-artifact@v4
+        with:
+          name: control-center-field-candidate-f7c0dc7ed42879cd5619cd94d0eac29412a13c17
+          run-id: 39838307544
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: _candidate-build
+      - name: Verify exact binary, real build source and unchanged application inputs
+        shell: python
+        run: |
+          from pathlib import Path
+          import hashlib, json, os, shutil, subprocess
+          source = 'f7c0dc7ed42879cd5619cd94d0eac29412a13c17'
+          expected = '5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd'
+          inputs = ['source/app', 'source/resources', 'source/main.py', 'source/modules', 'source/control_center_autonomous.py', 'source/TDE_CONTROL_CENTER_v1.0.spec', 'source/requirements.txt', 'source/build_windows.bat', 'SHARED_ASSETS', 'VERSION.txt']
+          subprocess.run(['git', 'diff', '--exit-code', source, 'HEAD', '--', *inputs], check=True)
+          evidence = Path('_candidate-build/validation')
+          manifest = json.loads((evidence/'build-manifest.json').read_text(encoding='utf-8'))
+          assert manifest['source_commit'] == source and manifest['sha256'] == expected
+          exe = Path('_candidate-build/source/dist') / manifest['exe']
+          assert hashlib.sha256(exe.read_bytes()).hexdigest() == expected
+          assert exe.stat().st_size == manifest['bytes']
+          validation = Path('validation')
+          shutil.copytree(evidence, validation, dirs_exist_ok=True)
+          (validation/'frozen-exe').rename(validation/'previous-native-attempt')
+          (validation/'native-driver.log').rename(validation/'previous-native-driver.log')
+          (validation/'candidate-windows.xml').rename(validation/'build-regressions-windows.xml')
+          (validation/'run.json').rename(validation/'build-run.json')
+          Path('candidate').mkdir()
+          shutil.copy2(exe, Path('candidate')/manifest['exe'])
+          result = {'application_source_commit': source, 'validator_source_commit': os.environ['GITHUB_SHA'], 'exe_sha256': expected, 'build_run': 39838307544, 'application_inputs_unchanged': True, 'new_build': False, 'production_release': False}
+          (validation/'recheck-manifest.json').write_text(json.dumps(result, indent=2)+chr(10), encoding='utf-8')
+      - name: Focused driver tests before full regression
+        working-directory: source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          python -m pytest -q tests/test_phase2_validation_gate.py --junitxml=../validation/native-driver-focused-windows.xml
+          if ($LASTEXITCODE -ne 0) { throw 'Native driver focused tests failed' }
+      - name: Full current Windows regression without ignoring any failure
+        working-directory: source
+        env:
+          QT_QPA_PLATFORM: offscreen
+        shell: pwsh
+        run: |
+          python -m pytest -q tests --junitxml=../validation/candidate-windows.xml
+          if ($LASTEXITCODE -ne 0) { throw 'Current Windows regressions failed' }
+      - name: Audit against original Phase2 baseline evidence from the exact build
+        run: python tools/compare_field_regressions.py --baseline validation/baseline-windows.xml --current validation/candidate-windows.xml --output validation/windows-comparison.json
+      - name: Verify the real unchanged candidate through native UI and restart
+        shell: pwsh
+        run: |
+          python tools/exercise_windows_exe.py candidate/TDE_CONTROL_CENTER_v1.0.15_CANDIDATE.exe --output validation/frozen-exe *> validation/native-driver.log
+          if ($LASTEXITCODE -ne 0) { throw 'Exact candidate frozen EXE validation failed' }
+      - name: Preserve the exact candidate and complete build and native evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-center-field-native-${{ github.sha }}
+          path: |
+            validation/
+            candidate/TDE_CONTROL_CENTER_v1.0.15_CANDIDATE.exe
+          retention-days: 14
+      - name: Save complete evidence to isolated validation branch
+        if: always()
+        env:
+          VALIDATION_JOB_STATUS: ${{ job.status }}
+        run: python tools/persist_validation_evidence.py

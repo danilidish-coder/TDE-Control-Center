@@ -48,6 +48,24 @@ def select_labeled_edit(rectangle, controls):
     return candidates[0]
 
 
+def select_payment_operation(combo, method_edit, send_keys):
+    """Select the actual Qt operation and verify its dependent control before input."""
+    try:
+        combo.select('ΕΙΣΠΡΑΞΗ')
+        wait_for(method_edit.is_enabled, timeout=3)
+        return 'UIA named combo selection'
+    except Exception as exc:
+        initial_error = f'{type(exc).__name__}: {exc}'
+    # A compressed desktop can cover the combo center with the following Edit.
+    # Open its visible top strip; send keys to the real popup without refocusing
+    # the covered combo center. END chooses PAYMENT, the last of its two items.
+    send_keys('{ESC}')
+    combo.click_input(coords=(5, 5))
+    send_keys('{END}{ENTER}')
+    wait_for(method_edit.is_enabled, timeout=10)
+    return 'visible popup fallback after ' + initial_error
+
+
 def verify_backup_snapshots(folder, start, end, expected_fines=None):
     """Check both the original empty startup backup and the completed shift."""
     if expected_fines is None:
@@ -89,6 +107,7 @@ def exercise(executable, output):
     if actual != identity['WINDOWS_VERSION'] or product != actual:
         raise AssertionError(f'Native Windows file version mismatch: {actual}')
     from pywinauto import Desktop
+    from pywinauto.keyboard import send_keys
     from openpyxl import load_workbook
     output.mkdir(parents=True, exist_ok=True)
     report = {'status': 'failed', 'exe_sha256': hashlib.sha256(executable.read_bytes()).hexdigest(), 'steps': []}
@@ -183,14 +202,22 @@ def exercise(executable, output):
                       if c.is_visible() and c.window_text() == 'ΤΥΠΟΣ ΠΡΑΞΗΣ']
             if len(labels) != 1: raise AssertionError('Missing operation type label')
             combo = select_labeled_edit(labels[0].rectangle(), window.descendants(control_type='ComboBox'))
-            combo.set_focus()
-            combo.type_keys('{HOME}{DOWN}{ENTER}')
+            method_labels = [c for c in window.descendants(control_type='Text')
+                             if c.is_visible() and c.window_text() == 'ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ']
+            if len(method_labels) != 1: raise AssertionError('Missing collection method label')
+            method_combo = select_labeled_edit(method_labels[0].rectangle(), window.descendants(control_type='ComboBox'))
+            method_edits = method_combo.descendants(control_type='Edit')
+            if len(method_edits) != 1: raise AssertionError('Missing editable collection method combo')
+            method_edit = method_edits[0]
+            report['payment_operation_selection'] = select_payment_operation(combo, method_edit, send_keys)
             for label, value in [('ΕΠΩΝΥΜΟ', 'FIELD-EFORIA'), ('ΟΝΟΜΑ', 'TEST'),
                                  ('ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ', 'ΕΦΟΡΙΑ'), ('ΑΣΤΥΝΟΜΙΚΟΣ / ΑΡΜΟΔΙΟΣ', 'PHASE1 VALIDATION')]:
                 matches = [c for c in window.descendants(control_type='Text')
                            if c.is_visible() and c.window_text() == label]
                 if len(matches) != 1: raise AssertionError(f'Missing payment field {label}')
-                select_labeled_edit(matches[0].rectangle(), window.descendants(control_type='Edit')).set_edit_text(value)
+                field = method_edit if label == 'ΤΡΟΠΟΣ ΕΙΣΠΡΑΞΗΣ' else select_labeled_edit(matches[0].rectangle(), window.descendants(control_type='Edit'))
+                if not field.is_enabled(): raise AssertionError(f'Frozen payment field is disabled: {label}')
+                field.set_edit_text(value)
             button(window, 'ΚΑΤΑΧΩΡΙΣΗ')
             confirmation = wait_for(lambda: dialog_window('Επιβεβαίωση'))
             yes = [b for b in confirmation.descendants(control_type='Button')
