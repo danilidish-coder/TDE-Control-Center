@@ -181,6 +181,49 @@ class FineReportEngine:
     def _clone_row_after(table, rows, sample_index: int) -> None:
         table.append(copy.deepcopy(rows[sample_index]))
 
+    @staticmethod
+    def _format_collections(table) -> None:
+        """Format only the receipts rows with native Word table properties.
+
+        Word table cells have no interoperable rounded-corner setting. Avoid
+        floating drawings that would obscure fields or fail during printing.
+        """
+        rows = table.xpath("./w:tr", namespaces=NS)
+        first = FineReportEngine._find_collection_header(rows)
+        def child(parent, name):
+            found = parent.find(f"{{{W}}}{name}")
+            return found if found is not None else etree.SubElement(parent, f"{{{W}}}{name}")
+        for index, row in enumerate(rows[first:]):
+            for cell in row.xpath("./w:tc", namespaces=NS):
+                properties = child(cell, "tcPr")
+                child(properties, "vAlign").set(f"{{{W}}}val", "center")
+                margins = child(properties, "tcMar")
+                for side in ("top", "left", "bottom", "right"):
+                    edge = child(margins, side)
+                    edge.set(f"{{{W}}}w", "50")
+                    edge.set(f"{{{W}}}type", "dxa")
+                borders = child(properties, "tcBorders")
+                for side in ("top", "left", "bottom", "right"):
+                    edge = child(borders, side)
+                    for key, value in (("val", "single"), ("sz", "4"), ("color", "9BAAB5")):
+                        edge.set(f"{{{W}}}{key}", value)
+                shading = child(properties, "shd")
+                shading.set(f"{{{W}}}val", "clear")
+                shading.set(f"{{{W}}}fill", "E8EEF3" if index == 0 else ("F6F8FA" if index % 2 else "FFFFFF"))
+                for paragraph in cell.xpath(".//w:p", namespaces=NS):
+                    spacing = child(child(paragraph, "pPr"), "spacing")
+                    spacing.set(f"{{{W}}}before", "0")
+                    spacing.set(f"{{{W}}}after", "0")
+                    for run in paragraph.xpath("./w:r", namespaces=NS):
+                        child(run, "rPr")
+                    for props in paragraph.xpath(".//w:rPr", namespaces=NS):
+                        fonts = child(props, "rFonts")
+                        for alphabet in ("ascii", "hAnsi", "cs", "eastAsia"):
+                            fonts.set(f"{{{W}}}{alphabet}", "Times New Roman")
+                        for size in ("sz", "szCs"):
+                            child(props, size).set(f"{{{W}}}val", "16")
+                        child(props, "b").set(f"{{{W}}}val", "1" if index == 0 else "0")
+
     def write_entries(self, output_docx: str | Path, entries: Iterable[FineEntry], *, source_docx: str | Path | None = None) -> Path:
         source = Path(source_docx) if source_docx else self.base_docx
         output = Path(output_docx)
@@ -214,6 +257,7 @@ class FineReportEngine:
                     raise ValueError("Η αναφορά Προστίμων πρέπει να έχει 11 στήλες.")
                 for tc, value in zip(cells, vals):
                     set_cell_text(tc, value)
+            self._format_collections(table)
             xml_path.write_bytes(etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone="yes"))
             _pack(td, output)
         return output
