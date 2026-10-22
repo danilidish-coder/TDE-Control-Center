@@ -10,6 +10,7 @@ from typing import Iterable
 from zipfile import ZipFile
 from lxml import etree
 
+from app.shared.payments import payment_category
 from app.shared.documents.common import clean, fmt_date
 from app.shared.documents.docx_mirror import NS, W, _extract, _pack, cell_text, set_cell_text, replace_sequence, replace_sequence_occurrence
 
@@ -67,12 +68,9 @@ class FineEntry:
         if self.is_imposition:
             return f"EPIVOLI_{amount}"
         method = clean(self.collection_method)
-        if method.lower().startswith("e-"):
-            return f"EPARAVOLO_{amount}"
-        if "ΕΦΟΡΙΑ" in method.upper():
-            return f"TYPOU_A_{amount}"
-        if "ΧΡΗΜ" in method.upper():
-            return f"EISPRAXI_{amount}"
+        prefix = {"payment": "EISPRAXI", "eparavolo": "EPARAVOLO", "detypa": "TYPOU_A"}.get(payment_category(method))
+        if prefix:
+            return f"{prefix}_{amount}"
         raise ValueError(f"Δεν αναγνωρίστηκε ο τρόπος είσπραξης: {method}")
 
 

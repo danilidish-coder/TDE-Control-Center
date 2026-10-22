@@ -198,6 +198,7 @@ class DailyActivityPage(QWidget):
         auto_items = [
             ("Σύνολο Αρνήσεων", "refusals_total"), ("Άρνηση H", "refusal_H"),
             ("Επιβολές προστίμων", "impositions_total"), ("Εισπράξεις προστίμων", "payments_total"),
+            ("Μη ταξινομημένες εξοφλήσεις", "unclassified_total"),
         ]
         for i, (label, key) in enumerate(auto_items):
             box = Card(); box.layout_box.addWidget(QLabel(label))

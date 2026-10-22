@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from app.shared.payments import protocol_category_formulas
+
 import platform
 import shutil
 from datetime import datetime
@@ -133,10 +135,13 @@ class ProtocolWorkbookWriter:
             ws.Cells(summary, 2).Value = "ΣΥΝ ΧΡΗΜ ΠΟΣΟ"
             ws.Cells(summary + 1, 2).Value = "ΣΥΝ Eparavolo"
             ws.Cells(summary + 2, 2).Value = "ΣΥΝ ΕΦΟΡΙΑ"
-            ws.Cells(summary + 3, 2).Value = "ΓΕΝ ΣΥΝΟΛΟ"
-            ws.Cells(summary, 3).Formula = f'=SUMIF(D{first_row}:D{formula_last},"*ΧΡ*",C{first_row}:C{formula_last})'
-            ws.Cells(summary + 1, 3).Formula = f'=SUMIF(D{first_row}:D{formula_last},"*ΠΑΡ*",C{first_row}:C{formula_last})'
-            ws.Cells(summary + 2, 3).Formula = f'=SUMIF(D{first_row}:D{formula_last},"*ΕΦΟΡ*",C{first_row}:C{formula_last})'
+            formulas, unknown = protocol_category_formulas(data, first_row)
+            ws.Cells(summary + 3, 2).Value = (
+                "ΓΕΝ ΣΥΝΟΛΟ (με μη ταξινομημένες εξοφλήσεις)" if unknown else "ΓΕΝ ΣΥΝΟΛΟ"
+            )
+            ws.Cells(summary, 3).Formula = formulas["payment"]
+            ws.Cells(summary + 1, 3).Formula = formulas["eparavolo"]
+            ws.Cells(summary + 2, 3).Formula = formulas["detypa"]
             ws.Cells(summary + 3, 3).Formula = f'=SUM(C{first_row}:C{formula_last})'
 
             try:

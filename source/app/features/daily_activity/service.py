@@ -15,7 +15,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from app.core.paths import archive_root, preview_root, resolve_runtime_path
-from app.core.textnorm import normalize_text
+from app.shared.payments import payment_category
 from app.features.refusals.documents import activity_cell
 
 
@@ -118,10 +118,18 @@ class DailyActivityService:
             "fine_payment_600": 0, "fine_payment_1200": 0,
             "fine_eparavolo_600": 0, "fine_eparavolo_1200": 0,
             "fine_detypa_600": 0, "fine_detypa_1200": 0,
+            "fine_unclassified_600": 0, "fine_unclassified_1200": 0, "fine_unclassified_other": 0,
         })
         with self.db.connect() as con:
             refs = con.execute("SELECT * FROM refusals WHERE shift_id=? ORDER BY id", (shift_id,)).fetchall()
             fines = con.execute("SELECT * FROM fines WHERE shift_id=? ORDER BY id", (shift_id,)).fetchall()
+            direct_receipts = con.execute(
+                "SELECT r.amount,r.payment_type AS collection_method,'PAYMENT' AS operation_type "
+                "FROM receipts r JOIN actions a ON a.id=r.action_id "
+                "WHERE a.shift_id=? AND a.action_type='PAYMENT' "
+                "AND NOT EXISTS(SELECT 1 FROM fines f WHERE f.action_id=r.action_id) ORDER BY r.id",
+                (shift_id,),
+            ).fetchall()
 
         cell_to_letter = {
             "B11": "A", "B12": "B", "B13": "C", "B14": "D", "B15": "E",
@@ -139,23 +147,19 @@ class DailyActivityService:
             elif cell == "B19": result["h_dka_detected"] += 1
             elif cell == "B20": result["h_sis_detected"] += 1
 
-        for f in fines:
-            amount = int(f["amount"] or 0)
-            if amount not in (600, 1200):
-                continue
+        for f in [*fines, *direct_receipts]:
+            amount = f["amount"] or 0
             if f["operation_type"] == "IMPOSITION":
-                result[f"fine_imposition_{amount}"] += 1
+                if amount in (600, 1200):
+                    result[f"fine_imposition_{int(amount)}"] += 1
                 continue
-            method = normalize_text(f["collection_method"] or "")
-            paravolo = normalize_text(f["paravolo"] or "")
-            joined = f"{method} {paravolo}".strip()
-            compact = joined.replace(" ", "")
-            if "PARAVOL" in compact or "EPARAVOL" in compact:
-                result[f"fine_eparavolo_{amount}"] += 1
-            elif ("TYPOY" in compact or "TYPOU" in compact or "TYPEA" in compact) and compact.startswith(("DE", "DET", "DETY")):
-                result[f"fine_detypa_{amount}"] += 1
+            if f["operation_type"] != "PAYMENT":
+                continue
+            category = payment_category(f["collection_method"])
+            if amount not in (600, 1200):
+                result["fine_unclassified_other"] += 1
             else:
-                result[f"fine_payment_{amount}"] += 1
+                result[f"fine_{category or 'unclassified'}_{int(amount)}"] += 1
         return result
 
     def summary_for_shift(self, shift_id: int) -> dict[str, Any]:
@@ -197,7 +201,10 @@ class DailyActivityService:
             result[key] = max(0, auto[key] + manual[f"adj_{key}"])
 
         result["impositions_total"] = result["fine_imposition_600"] + result["fine_imposition_1200"]
-        result["payments_total"] = sum(result[k] for k in (
+        result["unclassified_total"] = sum(result.get(k, 0) for k in (
+            "fine_unclassified_600", "fine_unclassified_1200", "fine_unclassified_other",
+        ))
+        result["payments_total"] = result["unclassified_total"] + sum(result[k] for k in (
             "fine_payment_600", "fine_payment_1200", "fine_eparavolo_600", "fine_eparavolo_1200",
             "fine_detypa_600", "fine_detypa_1200",
         ))
@@ -282,6 +289,7 @@ class DailyActivityService:
             (14,"ΕΙΣΠΡΑΞΗ ΠΡΟΣΤΙΜΩΝ",s["payments_total"]),(15,"ΕΙΣΠΡΑΞΗ 600,00 €",s["fine_payment_600"]),(16,"ΕΙΣΠΡΑΞΗ 1200,00 €",s["fine_payment_1200"]),
             (17,"eΠΑΡΑΒΟΛΟ 600,00 €",s["fine_eparavolo_600"]),(18,"eΠΑΡΑΒΟΛΟ 1200,00 €",s["fine_eparavolo_1200"]),
             (19,"Δ.Ε. ΤΥΠΟΥ-Α 600,00 €",s["fine_detypa_600"]),(20,"Δ.Ε. ΤΥΠΟΥ-Α 1200,00 €",s["fine_detypa_1200"]),
+            (21,"ΜΗ ΤΑΞΙΝΟΜΗΜΕΝΕΣ ΕΞΟΦΛΗΣΕΙΣ",s["unclassified_total"]),
             (22,"ΜΗ ΕΠΙΒΟΛΗ ΠΡΟΣΤΙΜΩΝ (Αρ. 16 § 1α)",s["no_fine_art16_1a"]),(23,"ΕΚΤΕΛΕΣΗ ΑΠΕΛΑΣΕΩΝ",s["deportations"]),
             (24,"ΕΚΤΕΛΕΣΗ ΕΠΑΝΑΠΡΟΩΘΗΣΕΩΝ",s["readmissions"]),(25,"ΥΠΗΡΕΣΙΑΚΑ ΣΗΜΕΙΩΜΑΤΑ",s["service_notes"]),
             (26,"ΠΡΟΣΑΓΩΓΕΣ στην Υπηρεσία μας",None),(27,"ΗΜΕΔΑΠΟΙ",s["presentations_greek"]),(28,"ΑΛΛΟΔΑΠΟΙ",s["presentations_foreign"]),
@@ -388,6 +396,7 @@ class DailyActivityService:
             ("ΕΙΣΠΡΑΞΕΙΣ ΠΡΟΣΤΙΜΩΝ","payments_total"),("ΕΙΣΠΡΑΞΗ 600 €","fine_payment_600"),("ΕΙΣΠΡΑΞΗ 1200 €","fine_payment_1200"),
             ("eΠΑΡΑΒΟΛΟ 600 €","fine_eparavolo_600"),("eΠΑΡΑΒΟΛΟ 1200 €","fine_eparavolo_1200"),
             ("Δ.Ε. ΤΥΠΟΥ-Α 600 €","fine_detypa_600"),("Δ.Ε. ΤΥΠΟΥ-Α 1200 €","fine_detypa_1200"),
+            ("ΜΗ ΤΑΞΙΝΟΜΗΜΕΝΕΣ ΕΞΟΦΛΗΣΕΙΣ","unclassified_total"),
             ("ΑΠΑΓΟΡΕΥΣΗ ΕΞΟΔΟΥ","exit_bans"),("ΜΗ ΕΠΙΒΟΛΗ ΠΡΟΣΤΙΜΟΥ - ΑΡΘΡΟ 16 §1α","no_fine_art16_1a"),
             ("ΕΚΤΕΛΕΣΗ ΑΠΕΛΑΣΕΩΝ","deportations"),("ΕΚΤΕΛΕΣΗ ΕΠΑΝΑΠΡΟΩΘΗΣΕΩΝ","readmissions"),("ΥΠΗΡΕΣΙΑΚΑ ΣΗΜΕΙΩΜΑΤΑ","service_notes"),
             ("ΠΡΟΣΑΓΩΓΕΣ ΗΜΕΔΑΠΩΝ","presentations_greek"),("ΠΡΟΣΑΓΩΓΕΣ ΑΛΛΟΔΑΠΩΝ","presentations_foreign"),
