@@ -42,13 +42,20 @@ class SharedWriteLock:
                 break
             except FileExistsError:
                 self._wait_for_lock(started)
-            except PermissionError:
+            except PermissionError as exc:
                 # On Windows (and occasionally SMB), attempting to create a lock
                 # directory that another process owns may surface as WinError 5
                 # instead of FileExistsError. Treat it as contention only when
                 # the lock path actually exists; otherwise preserve the real
                 # permission failure.
                 if not self.lock_dir.exists():
+                    # Windows may report delete-pending as WinError 5, then
+                    # the other writer finishes rmdir before this exists check.
+                    # Retry mkdir within the original timeout; never enter the
+                    # critical section without acquiring a new owned directory.
+                    if getattr(exc, "winerror", None) == 5 and time.monotonic() - started < self.timeout:
+                        time.sleep(0.15)
+                        continue
                     raise
                 self._wait_for_lock(started)
         try:

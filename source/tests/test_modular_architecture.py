@@ -111,7 +111,8 @@ def test_autonomous_path_resources_database_and_entry_are_unchanged():
     # Candidate build identity is separately checked in test_field_version.
     # Candidate build identity is separately checked in test_field_version.
     # The sole authorized core change is the separately regression-tested lock
-    # recovery policy. Database schema, timestamps, paths and all other core files
+    # recovery policy and bounded Windows acquisition retry. Database schema,
+    # timestamps, paths and all other core files
     # still compare directly with the production baseline.
     protected.remove('source/app/core/lock.py')
     # Git applies the checkout's text filters (e.g. Windows CRLF), while binary
