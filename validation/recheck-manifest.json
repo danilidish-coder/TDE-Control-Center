@@ -1,0 +1,9 @@
+{
+  "application_source_commit": "f7c0dc7ed42879cd5619cd94d0eac29412a13c17",
+  "validator_source_commit": "d2214b7118c2fac92e0afd75db0abbb856385bc1",
+  "exe_sha256": "5128432f0c1decfe34284a4a554b36d7b7345a88860e465e1ee390081a40e5fd",
+  "build_run": 39838307544,
+  "application_inputs_unchanged": true,
+  "new_build": false,
+  "production_release": false
+}

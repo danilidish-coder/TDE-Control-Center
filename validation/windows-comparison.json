@@ -1,0 +1,14 @@
+{
+  "baseline_tests": 227,
+  "current_tests": 289,
+  "historical_failures": [],
+  "missing": [],
+  "changed_outcomes": {},
+  "new_tests_passed": 62,
+  "new_tests_not_passed": {},
+  "compatible": true,
+  "confirmed_baseline_windows_lock_race": [],
+  "unexpected_outcome_changes": {},
+  "unexpected_baseline_failures": {},
+  "candidate_failures_or_skips": {}
+}
