@@ -187,6 +187,24 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if candidates and candidates[-1][0] == day:
                 break
             day -= timedelta(days=1)
+        if not candidates:
+            # Recovery for a manually renamed source: inspect only the
+            # relevant month/day, never earlier years or whole tree.
+            month_dir = destination_folder(root, allowed_date)
+            try:
+                if f.folder_layout == "BAT_DAILY":
+                    # Current day and preceding day are sufficient for an
+                    # operator's initial re-selection after a rename.
+                    for offset in (0, 1):
+                        d = allowed_date - timedelta(days=offset)
+                        folder = self._destination(f, d)
+                        for path in folder.iterdir():
+                            add(path)
+                else:
+                    for path in month_dir.iterdir():
+                        add(path)
+            except (FileNotFoundError, NotADirectoryError):
+                pass
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
