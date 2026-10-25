@@ -95,7 +95,7 @@ class PeriodicalsService:
         for pkg in engine.active_packages():
             paths: list[str] = []
             for f in engine.package_files(pkg.id):
-                key = (clean(f.archive_root) or clean(f.source_path)).upper()
+                key = clean(f.source_path).upper()
                 if key and key in processed:
                     continue
                 if key:
