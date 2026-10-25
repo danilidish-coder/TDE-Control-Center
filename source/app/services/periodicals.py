@@ -124,11 +124,24 @@ class PeriodicalsService:
         allowed = operational_date(when)
         engine, data, path = self.load()
         out: list[Path] = []
+        fallback_needed = False
         for f in engine.package_files(package_id):
-            q = engine.latest_prepared_path(f, allowed)
-            if q is not None:
-                out.append(q)
-        self.save(engine, data, path)
+            # Step 2 should open the exact files prepared by Step 1, without
+            # recursively scanning the network again.
+            candidate = Path(f.prepared_path) if clean(f.prepared_path) else None
+            try:
+                prepared_date = date.fromisoformat(f.prepared_date)
+            except (TypeError, ValueError):
+                prepared_date = None
+            if candidate is not None and candidate.is_file() and prepared_date is not None and prepared_date <= allowed:
+                out.append(candidate)
+            else:
+                fallback_needed = True
+                q = engine.latest_prepared_path(f, allowed)
+                if q is not None:
+                    out.append(q)
+        if fallback_needed:
+            self.save(engine, data, path)
         return out
 
     @staticmethod
