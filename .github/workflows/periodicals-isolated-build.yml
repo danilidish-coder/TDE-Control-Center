@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: python -m pip install -r source/requirements.txt -r source/requirements-build.txt pytest
+        run: python -m pip install -r source/requirements.txt pytest
       - name: Run periodicals regression tests
         working-directory: source
         run: python -m pytest -q tests/test_periodicals_unified_integration.py tests/test_periodicals_unified_stress.py
