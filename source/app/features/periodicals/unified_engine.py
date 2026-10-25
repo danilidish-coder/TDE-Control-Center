@@ -137,18 +137,18 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
     def _candidate_files(self, f: PackageFile, allowed_date: date) -> list[tuple[date, Path]]:
         candidates: list[tuple[date, Path]] = []
         seen: set[str] = set()
+        source = Path(f.source_path or f.name)
+        series = _series_name(source.name or f.name)
+        root = Path(f.archive_root) if clean(f.archive_root) else None
+        restrict_series = bool(series and root and self._scan_root(source, root) is not None)
+        cache = self.__dict__.setdefault("_periodical_folder_cache", {})
 
         def add(path: Path) -> None:
-            if not path.is_file() or path.name.startswith("~$"):
+            if path.name.startswith("~$"):
                 return
-            source = Path(f.source_path or f.name)
-            series = _series_name(source.name or f.name)
-            if series and self._scan_root(source, Path(f.archive_root)) is not None and _series_name(path.name) != series:
+            if restrict_series and _series_name(path.name) != series:
                 return
-            try:
-                key = str(path.resolve()).casefold()
-            except Exception:
-                key = str(path).casefold()
+            key = str(path).casefold()
             if key in seen:
                 return
             seen.add(key)
@@ -156,25 +156,47 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
                 d, _ = filename_date(path.name)
             except ValueError:
                 return
-            if d <= allowed_date:
+            if d <= allowed_date and path.is_file():
                 candidates.append((d, path))
 
-        if clean(f.archive_root):
-            root = Path(f.archive_root)
-            if root.exists():
-                for path in root.rglob("*"):
-                    if path.is_file():
-                        add(path)
-        if clean(f.prepared_path):
-            add(Path(f.prepared_path))
-        if clean(f.source_path):
-            add(Path(f.source_path))
+        def children(folder: Path) -> tuple[Path, ...]:
+            key = str(folder).casefold()
+            if key not in cache:
+                try:
+                    cache[key] = tuple(folder.iterdir())
+                except (FileNotFoundError, NotADirectoryError):
+                    cache[key] = ()
+            return cache[key]
+
+        # The registered user-selected files are the first candidates.
+        for raw in (f.prepared_path, f.source_path):
+            if clean(raw):
+                add(Path(raw))
+
+        if root is not None:
+            # Only inspect the known YEAR / MONTH / optional DAY hierarchy.
+            # Never recursively traverse unrelated files in the shared network.
+            for year_folder in children(root):
+                if not year_folder.name.isdigit() or len(year_folder.name) != 4:
+                    continue
+                if int(year_folder.name) > allowed_date.year:
+                    continue
+                for month_folder in children(year_folder):
+                    if not month_folder.name[:1].isdigit():
+                        continue
+                    for child in children(month_folder):
+                        if child.is_dir():
+                            if f.folder_layout == "BAT_DAILY":
+                                for candidate in children(child):
+                                    add(candidate)
+                        else:
+                            add(child)
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
         candidates = self._candidate_files(f, allowed_date)
         if candidates:
-            candidates.sort(key=lambda item: (item[0], item[1].stat().st_mtime_ns, str(item[1])))
+            candidates.sort(key=lambda item: (item[0], str(item[1])))
             return candidates[-1]
         for raw in (f.prepared_path, f.source_path):
             if clean(raw):
@@ -243,6 +265,7 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             created = False
         else:
             shutil.copy2(source, target)
+            self.__dict__.pop("_periodical_folder_cache", None)
             created = True
         f.prepared_path = str(target)
         f.prepared_date = target_date.isoformat()
