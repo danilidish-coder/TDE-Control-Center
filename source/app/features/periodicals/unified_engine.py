@@ -174,28 +174,23 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
                 add(Path(raw))
 
         if root is not None:
-            # A user-selected current file is the anchor. Inspect only the
-            # current and previous two calendar months, never entire archives.
-            recent_months = set()
-            for offset in range(3):
-                n = allowed_date.year * 12 + allowed_date.month - 1 - offset
-                recent_months.add((n // 12, n % 12 + 1))
-            for year in {y for y, _ in recent_months}:
-                year_folder = root / str(year)
-                for month_folder in children(year_folder):
-                    try:
-                        month_number = int(month_folder.name.split(".", 1)[0].strip())
-                    except ValueError:
-                        continue
-                    if (year, month_number) not in recent_months:
-                        continue
-                    for child in children(month_folder):
-                        if child.is_dir():
-                            if f.folder_layout == "BAT_DAILY":
-                                for candidate in children(child):
-                                    add(candidate)
-                        else:
-                            add(child)
+            # Inspect ONLY the operating month's directory. At a month
+            # boundary, the stored source/prepared file remains a candidate.
+            month_folders = children(root / str(allowed_date.year))
+            for month_folder in month_folders:
+                try:
+                    month_number = int(month_folder.name.split(".", 1)[0].strip())
+                except ValueError:
+                    continue
+                if month_number != allowed_date.month:
+                    continue
+                for child in children(month_folder):
+                    if child.is_dir():
+                        if f.folder_layout == "BAT_DAILY":
+                            for candidate in children(child):
+                                add(candidate)
+                    else:
+                        add(child)
 
         return candidates
 
