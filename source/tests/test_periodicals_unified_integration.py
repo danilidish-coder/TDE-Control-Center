@@ -162,3 +162,41 @@ def test_known_catalog_file_is_normalized_when_added_to_second_package(tmp_path)
     assert clone.name_template == ""
     assert clone.folder_layout == "YEAR_MONTH"
     assert Path(clone.archive_root) == root
+
+
+def test_legacy_bat_latest_2026_wins_over_registered_2025_seed(tmp_path):
+    scan = tmp_path / "1. SCAN FOLDER REPORTS"
+    old_day = scan / "2025" / "12. ΔΕΚΕΜΒΡΙΟΣ 2025" / "31-12-2025"
+    recent_day = scan / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "24-10-2026"
+    old_day.mkdir(parents=True)
+    recent_day.mkdir(parents=True)
+    old = old_day / "ΑΝΑΦΟΡΕΣ 31-12-2025 ΑΞ.ΥΠ..docx"
+    recent = recent_day / "ΑΝΑΦΟΡΕΣ 24-10-2026 ΑΞ.ΥΠ..docx"
+    old.write_bytes(b"OLD_2025")
+    recent.write_bytes(b"LATEST_2026")
+    row = PackageFile("P1", old.name, str(old), True, PROFILE_DAILY_FOLDER,
+                      "", "", "", str(scan), "", "BAT_DAILY", "")
+    engine = UnifiedPeriodicalsEngine([_pkg(tmp_path / "packages")], [row])
+    latest_date, latest_path = engine.latest_existing_prepared(row, date(2026, 10, 25))
+    assert latest_date == date(2026, 10, 24)
+    assert latest_path == recent
+    result = engine.prepare_next_package("P1", date(2026, 10, 25))
+    assert len(result.prepared) == 1
+    assert result.prepared[0].read_bytes() == b"LATEST_2026"
+    assert old.read_bytes() == b"OLD_2025"
+
+
+def test_legacy_bat_scan_search_does_not_mix_report_series(tmp_path):
+    scan = tmp_path / "1. SCAN FOLDER REPORTS"
+    day = scan / "2026" / "10. ΟΚΤΩΒΡΙΟΣ 2026" / "24-10-2026"
+    day.mkdir(parents=True)
+    own = day / "ΑΝΑΦΟΡΕΣ 24-10-2026 ΑΞ.ΥΠ..docx"
+    other = day / "ΣΤΟΙΧΕΙΑ ΕΓΚΛΗΜΑΤΙΚΟΤΗΤΑΣ 25-10-2026 (μέχρι 06.00).xlsx"
+    own.write_bytes(b"OWN")
+    other.write_bytes(b"OTHER")
+    row = PackageFile("P1", own.name, str(own), True, PROFILE_DAILY_FOLDER,
+                      "", "", "", str(scan), "", "BAT_DAILY", "")
+    engine = UnifiedPeriodicalsEngine([_pkg(tmp_path / "packages")], [row])
+    when, selected = engine.latest_existing_prepared(row, date(2026, 10, 25))
+    assert when == date(2026, 10, 24)
+    assert selected == own
