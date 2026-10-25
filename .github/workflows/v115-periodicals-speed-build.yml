@@ -26,7 +26,7 @@ jobs:
         run: python -m PyInstaller --clean --noconfirm TDE_CONTROL_CENTER_v1.0.spec
       - name: Rename test binary
         shell: pwsh
-        run: Copy-Item source/dist/TDE_CONTROL_CENTER_v1.0.exe TDE_CONTROL_CENTER_v1.0.15_PERIODICALS_SPEED_TEST_20261025.exe
+        run: Copy-Item source/dist/TDE_CONTROL_CENTER_v1.0.15_CANDIDATE.exe TDE_CONTROL_CENTER_v1.0.15_PERIODICALS_SPEED_TEST_20261025.exe
       - name: Upload isolated test binary
         uses: actions/upload-artifact@v4
         with:
