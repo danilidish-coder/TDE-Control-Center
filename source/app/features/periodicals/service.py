@@ -192,11 +192,23 @@ class PeriodicalsService:
         allowed = operational_date(when)
         engine, data, path = self.load()
         out: list[Path] = []
+        changed = False
         for f in engine.package_files(package_id):
+            # Step 2 must open Step 1's exact prepared file, not scan the archive.
+            prepared = Path(f.prepared_path) if clean(f.prepared_path) else None
+            try:
+                prepared_day = date.fromisoformat(f.prepared_date)
+            except (ValueError, TypeError):
+                prepared_day = None
+            if prepared is not None and prepared_day is not None and prepared_day <= allowed and prepared.is_file():
+                out.append(prepared)
+                continue
             q = engine.latest_prepared_path(f, allowed)
             if q is not None:
                 out.append(q)
-        self.save(engine, data, path)
+                changed = True
+        if changed:
+            self.save(engine, data, path)
         return out
 
     @staticmethod
