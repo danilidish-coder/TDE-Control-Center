@@ -120,6 +120,18 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
     def _candidate_files(self, f: PackageFile, allowed_date: date) -> list[tuple[date, Path]]:
         candidates: list[tuple[date, Path]] = []
         seen: set[str] = set()
+        # Cache directory listings during this operation to avoid repeatedly
+        # walking the same shared network trees for every file and package.
+        if not hasattr(self, "_periodical_scan_cache"):
+            self._periodical_scan_cache = {}
+
+        def files_under(root: Path):
+            key = str(root).casefold()
+            if key not in self._periodical_scan_cache:
+                self._periodical_scan_cache[key] = tuple(
+                    path for path in root.rglob("*") if path.is_file()
+                ) if root.exists() else ()
+            return self._periodical_scan_cache[key]
 
         def add(path: Path) -> None:
             if not path.is_file():
@@ -140,10 +152,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
 
         if clean(f.archive_root):
             root = Path(f.archive_root)
-            if root.exists():
-                for path in root.rglob("*"):
-                    if path.is_file():
-                        add(path)
+            for path in files_under(root):
+                add(path)
 
             # The legacy BAT wrote SCAN reports under SCAN/YEAR/MONTH/DAY,
             # whereas the unified engine stores new ones under SCAN/SERIES/YEAR/MONTH.
@@ -152,8 +162,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if series and root.name.casefold() == series.casefold():
                 legacy_root = root.parent
                 if legacy_root.name.casefold() == "1. scan folder reports".casefold():
-                    for path in legacy_root.rglob("*"):
-                        if path.is_file() and _series_name(path.name).casefold() == series.casefold():
+                    for path in files_under(legacy_root):
+                        if _series_name(path.name).casefold() == series.casefold():
                             add(path)
         if clean(f.prepared_path):
             add(Path(f.prepared_path))
@@ -224,6 +234,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         else:
             shutil.copy2(source, target)
             created = True
+        if created and hasattr(self, "_periodical_scan_cache"):
+            self._periodical_scan_cache.clear()
         f.prepared_path = str(target)
         f.prepared_date = target_date.isoformat()
         f.status = "ΕΤΟΙΜΟ"
