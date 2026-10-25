@@ -120,6 +120,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
     def _candidate_files(self, f: PackageFile, allowed_date: date) -> list[tuple[date, Path]]:
         candidates: list[tuple[date, Path]] = []
         seen: set[str] = set()
+        # One network traversal per archive root during a preparation operation.
+        cache = self.__dict__.setdefault("_scan_cache", {})
 
         def add(path: Path) -> None:
             if not path.is_file():
@@ -140,10 +142,11 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
 
         if clean(f.archive_root):
             root = Path(f.archive_root)
-            if root.exists():
-                for path in root.rglob("*"):
-                    if path.is_file():
-                        add(path)
+            key = str(root).casefold()
+            if key not in cache:
+                cache[key] = tuple(path for path in root.rglob("*") if path.is_file()) if root.exists() else ()
+            for path in cache[key]:
+                add(path)
         if clean(f.prepared_path):
             add(Path(f.prepared_path))
         if clean(f.source_path):
@@ -213,6 +216,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         else:
             shutil.copy2(source, target)
             created = True
+        if created:
+            self.__dict__.pop("_scan_cache", None)
         f.prepared_path = str(target)
         f.prepared_date = target_date.isoformat()
         f.status = "ΕΤΟΙΜΟ"
