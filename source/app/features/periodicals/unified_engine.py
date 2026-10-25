@@ -135,13 +135,17 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         return f
 
     def _candidate_files(self, f: PackageFile, allowed_date: date) -> list[tuple[date, Path]]:
+        """Find latest from saved checkpoint, then probe only this month's dates.
+
+        Avoid listing year/month/day trees over SMB. The last confirmed path is
+        persisted by PeriodicalsService.save, so next run starts there.
+        """
         candidates: list[tuple[date, Path]] = []
         seen: set[str] = set()
         source = Path(f.source_path or f.name)
         series = _series_name(source.name or f.name)
         root = Path(f.archive_root) if clean(f.archive_root) else None
         restrict_series = bool(series and root and self._scan_root(source, root) is not None)
-        cache = self.__dict__.setdefault("_periodical_folder_cache", {})
 
         def add(path: Path) -> None:
             if path.name.startswith("~$"):
@@ -159,39 +163,30 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
             if d <= allowed_date and path.is_file():
                 candidates.append((d, path))
 
-        def children(folder: Path) -> tuple[Path, ...]:
-            key = str(folder).casefold()
-            if key not in cache:
-                try:
-                    cache[key] = tuple(folder.iterdir())
-                except (FileNotFoundError, NotADirectoryError):
-                    cache[key] = ()
-            return cache[key]
-
-        # The registered user-selected files are the first candidates.
+        # Existing persisted checkpoint always has priority over the initial
+        # registration path. The checkpoint is updated and saved by Step 1.
         for raw in (f.prepared_path, f.source_path):
             if clean(raw):
                 add(Path(raw))
 
-        if root is not None:
-            # Inspect ONLY the operating month's directory. At a month
-            # boundary, the stored source/prepared file remains a candidate.
-            month_folders = children(root / str(allowed_date.year))
-            for month_folder in month_folders:
-                try:
-                    month_number = int(month_folder.name.split(".", 1)[0].strip())
-                except ValueError:
-                    continue
-                if month_number != allowed_date.month:
-                    continue
-                for child in children(month_folder):
-                    if child.is_dir():
-                        if f.folder_layout == "BAT_DAILY":
-                            for candidate in children(child):
-                                add(candidate)
-                    else:
-                        add(child)
+        if root is None:
+            return candidates
 
+        anchor = max(candidates, key=lambda item: item[0]) if candidates else None
+        basename = anchor[1].name if anchor is not None else source.name
+        # Only the current month, newest day first. At a month boundary the
+        # persisted previous-month checkpoint remains available.
+        month_start = date(allowed_date.year, allowed_date.month, 1)
+        first_day = month_start
+        if anchor is not None and anchor[0] >= month_start:
+            first_day = anchor[0]
+        day = allowed_date
+        while day >= first_day:
+            target = self._destination(f, day) / _dated_name(basename, day)
+            add(target)
+            if candidates and candidates[-1][0] == day:
+                break
+            day -= timedelta(days=1)
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
