@@ -144,6 +144,17 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
                 for path in root.rglob("*"):
                     if path.is_file():
                         add(path)
+
+            # The legacy BAT wrote SCAN reports under SCAN/YEAR/MONTH/DAY,
+            # whereas the unified engine stores new ones under SCAN/SERIES/YEAR/MONTH.
+            # Search BOTH layouts during migration, but only for this exact series.
+            series = _series_name(Path(f.source_path).name or f.name)
+            if series and root.name.casefold() == series.casefold():
+                legacy_root = root.parent
+                if legacy_root.name.casefold() == "1. scan folder reports".casefold():
+                    for path in legacy_root.rglob("*"):
+                        if path.is_file() and _series_name(path.name).casefold() == series.casefold():
+                            add(path)
         if clean(f.prepared_path):
             add(Path(f.prepared_path))
         if clean(f.source_path):
@@ -225,7 +236,8 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
         prepared, skipped, failed = [], [], []
         seen: set[str] = set()
         for f in self.package_files(package_id):
-            key = (clean(f.archive_root) or clean(f.source_path)).casefold()
+            # Multiple different periodicals can legitimately share one archive root.
+            key = clean(f.source_path).casefold()
             if key and key in seen:
                 continue
             if key:
