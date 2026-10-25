@@ -174,15 +174,20 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
                 add(Path(raw))
 
         if root is not None:
-            # Only inspect the known YEAR / MONTH / optional DAY hierarchy.
-            # Never recursively traverse unrelated files in the shared network.
-            for year_folder in children(root):
-                if not year_folder.name.isdigit() or len(year_folder.name) != 4:
-                    continue
-                if int(year_folder.name) > allowed_date.year:
-                    continue
+            # A user-selected current file is the anchor. Inspect only the
+            # current and previous two calendar months, never entire archives.
+            recent_months = set()
+            for offset in range(3):
+                n = allowed_date.year * 12 + allowed_date.month - 1 - offset
+                recent_months.add((n // 12, n % 12 + 1))
+            for year in {y for y, _ in recent_months}:
+                year_folder = root / str(year)
                 for month_folder in children(year_folder):
-                    if not month_folder.name[:1].isdigit():
+                    try:
+                        month_number = int(month_folder.name.split(".", 1)[0].strip())
+                    except ValueError:
+                        continue
+                    if (year, month_number) not in recent_months:
                         continue
                     for child in children(month_folder):
                         if child.is_dir():
@@ -191,6 +196,7 @@ class UnifiedPeriodicalsEngine(PeriodicalsEngine):
                                     add(candidate)
                         else:
                             add(child)
+
         return candidates
 
     def latest_existing_prepared(self, f: PackageFile, allowed_date: date):
