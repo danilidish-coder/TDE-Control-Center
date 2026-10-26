@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "app": "TDE Control Center",
+  "version": "v1.0.15",
+  "build_label": "PERIODICALS_CHECKPOINT_20261025",
+  "status": "approved_in_use_by_user",
+  "approved_date": "2026-10-26",
+  "build_date": "2026-10-25",
+  "exe_name": "TDE_CONTROL_CENTER_v1.0.15_PERIODICALS_CHECKPOINT_20261025.exe",
+  "exe_size_bytes": 58978523,
+  "exe_sha256": "1f7ee48eb54ad92de105520da370d6dd11fac4b8db1018d314a682c24f09c626",
+  "zip_drive_url": "https://drive.google.com/file/d/1-ySjTPvgbI_D69PwcuFElHNSsWMwrkCc/view",
+  "source_commit": null,
+  "source_verification": "pending exact source-to-binary linkage; do not guess or use default main",
+  "previous_build": {
+    "label": "PERIODICALS_FAST_TEST_20261025",
+    "exe_sha256": "9223c7c3abb217b15462ae3dd9935046d29dbe1e7f1a9f52c6abeab9d095c592",
+    "drive_url": "https://drive.google.com/file/d/15hDsfxKzLKHk4sIX5MhJG030GAMJ8gjn/view"
+  },
+  "summary": "Periodicals workflow corrections. Exact source commit unverified.",
+  "selection_rule": "User latest means this exact binary by SHA-256, not latest commit, historical registry, or older v1.0.15."
+}
