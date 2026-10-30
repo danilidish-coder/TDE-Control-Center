@@ -9,9 +9,9 @@
   "exe_name": "TDE_CONTROL_CENTER_v1.0.15_PERIODICALS_CHECKPOINT_20261025.exe",
   "exe_size_bytes": 58978523,
   "exe_sha256": "1f7ee48eb54ad92de105520da370d6dd11fac4b8db1018d314a682c24f09c626",
-  "zip_drive_url": "https://drive.google.com/file/d/1-ySjTPvgbI_D69PwcuFElHNSsWMwrkCc/view",
+  "zip_drive_url": "https://drive.google.com/file/d/19Tk4tBR0i6L22MuvAA1ZKi0528Oar1D-/view",
   "source_commit": "fd8b3adabf75d0834a0c74dd7cc55e2a5ff3c51d",
-  "source_verification": "Matched exact output EXE filename and PyInstaller recipe in .github/workflows/v115-periodicals-speed-build.yml at branch HEAD. Build-run artifact EXE hash comparison outstanding; provenance is strongly linked but not yet cryptographically confirmed.",
+  "source_verification": "EXE SHA-256 verified 2026-10-30 against Actions artifact 12609397059 of run 40219940700 built from fd8b3ad; exact EXE stored in branch approved/v1.0.15 and in the GitHub Release.",
   "previous_build": {
     "label": "PERIODICALS_FAST_TEST_20261025",
     "exe_sha256": "9223c7c3abb217b15462ae3dd9935046d29dbe1e7f1a9f52c6abeab9d095c592",
@@ -21,5 +21,9 @@
   "selection_rule": "User latest means this exact binary by SHA-256, not latest commit, historical registry, or older v1.0.15.",
   "source_branch": "fix/v115-periodicals-speed-20261025",
   "source_workflow": ".github/workflows/v115-periodicals-speed-build.yml",
-  "next_change_rule": "Start from recorded source commit fd8b3ad... on isolated branch only after verifying source+runtime compatibility; do not automatically use main."
+  "next_change_rule": "Start from recorded source commit fd8b3ad... on isolated branch only after verifying source+runtime compatibility; do not automatically use main.",
+  "exe_drive_url": "https://drive.google.com/file/d/1f9R3SknhMqnoiSdpW96fggLH3GfR2tUg/view",
+  "drive_folder": "https://drive.google.com/drive/folders/17ndKAEWakohC91fB8p_Roz9l3bNjcZwr",
+  "github_release": "https://github.com/danilidish-coder/TDE-Control-Center/releases/tag/v1.0.15-periodicals-checkpoint-20261025",
+  "approved_branch": "approved/v1.0.15"
 }
