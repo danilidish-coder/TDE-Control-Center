@@ -1,0 +1,81 @@
+name: Archive approved Control Center v1.0.15 (EXE + source)
+
+on:
+  push:
+    branches:
+      - archive/v1.0.15
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    env:
+      ART_ID: "12609397059"
+      SRC_COMMIT: fd8b3adabf75d0834a0c74dd7cc55e2a5ff3c51d
+      EXE_NAME: TDE_CONTROL_CENTER_v1.0.15_PERIODICALS_CHECKPOINT_20261025.exe
+      EXE_SHA: 1f7ee48eb54ad92de105520da370d6dd11fac4b8db1018d314a682c24f09c626
+      TARGET_BRANCH: approved/v1.0.15
+      TAG: v1.0.15-periodicals-checkpoint-20261025
+      SRC_NAME: TDE_CONTROL_CENTER_v1.0.15_SOURCE.zip
+      PKG_NAME: TDE_CONTROL_CENTER_v1.0.15_KODIKAS_KAI_EXE.zip
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download exact approved artifact
+        shell: bash
+        run: |
+          set -e
+          mkdir -p dl
+          gh api "repos/${{ github.repository }}/actions/artifacts/$ART_ID/zip" > art.bin
+          ls -l art.bin
+          if unzip -tq art.bin >/dev/null 2>&1; then unzip -q -o art.bin -d dl; else mv art.bin "dl/$EXE_NAME"; fi
+          find dl -type f -printf '%s %p\n'
+          F=$(find dl -type f -name "$EXE_NAME" | head -1)
+          test -n "$F"
+          cp "$F" "./$EXE_NAME"
+          echo "$EXE_SHA  $EXE_NAME" | sha256sum -c -
+
+      - name: Checkout approved source commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SRC_COMMIT }}
+          path: repo
+          fetch-depth: 1
+
+      - name: Create approved branch with EXE
+        shell: bash
+        run: |
+          set -e
+          cd repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b "$TARGET_BRANCH"
+          mkdir -p release
+          cp "../$EXE_NAME" "release/$EXE_NAME"
+          printf '%s  %s\n' "$EXE_SHA" "$EXE_NAME" > release/SHA256.txt
+          cat > release/README_EL.md <<'MD'
+          # Κέντρο Ελέγχου v1.0.15 — ΤΕΛΕΥΤΑΙΑ ΕΓΚΕΚΡΙΜΕΝΗ (26/10/2026)
+          Το EXE σε αυτόν τον φάκελο είναι το ακριβές εγκεκριμένο αρχείο (PERIODICALS_CHECKPOINT_20261025).
+          Πηγαίος κώδικας: αυτό το branch (commit fd8b3ad). Έλεγχος ταυτότητας: SHA256.txt.
+          MD
+          sed -i 's/^          //' release/README_EL.md
+          git add -A
+          git commit -qm "v1.0.15: μόνιμη αποθήκευση εγκεκριμένου EXE (artifact $ART_ID, SHA επαληθευμένο)"
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH"
+
+      - name: Build package and upload to release
+        shell: bash
+        run: |
+          set -e
+          cd repo
+          git archive --format=zip -o "../$SRC_NAME" "$SRC_COMMIT"
+          cd ..
+          mkdir pkg && cp "$EXE_NAME" "$SRC_NAME" repo/release/SHA256.txt pkg/
+          (cd pkg && zip -q -9 "../$PKG_NAME" *)
+          ls -l "$PKG_NAME"
+          cd repo
+          gh release upload "$TAG" "../$PKG_NAME" "../$EXE_NAME" "../$SRC_NAME" "release/SHA256.txt" --clobber
+          gh release edit "$TAG" --title "Κέντρο Ελέγχου v1.0.15 — ΕΓΚΕΚΡΙΜΕΝΗ 26/10/2026" --notes "Τελευταία λειτουργική έκδοση v1.0.15 (PERIODICALS_CHECKPOINT_20261025). Περιέχει το EXE (SHA-256 επαληθευμένο), τον πηγαίο κώδικα (commit fd8b3ad) και πακέτο με τα δύο μαζί ($PKG_NAME)."
